@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Live Detection Script (YAMNet Transfer Learning Version)
+Birleştirilmiş Versiyon: LCD + Sensör + Ebeveyn Takip Soruları
 """
 
 import os
@@ -33,7 +34,7 @@ YAMNET_MODEL_HANDLE = 'https://tfhub.dev/google/yamnet/1'
 # YAMNet Parametreleri
 SAMPLE_RATE = 16000 # YAMNet 16k zorunlu
 DURATION = 5        # 5 saniyelik dinleme
-CONFIDENCE_THRESHOLD = 40.0 # Transfer learning daha katı olabilir, eşiği ayarladık
+CONFIDENCE_THRESHOLD = 40.0
 RMS_THRESHOLD = 0.005 
 
 # Arduino Ayarları
@@ -60,15 +61,12 @@ def load_components():
     """Modelleri yükle"""
     print("Modeller yükleniyor (Biraz sürebilir)...")
     try:
-        # 1. YAMNet Yükle
         print("  - YAMNet indiriliyor/yükleniyor...")
         yamnet = hub.load(YAMNET_MODEL_HANDLE)
         
-        # 2. Bizim Sınıflandırıcıyı Yükle
         print("  - Sınıflandırıcı yükleniyor...")
         classifier = tf.keras.models.load_model(MODEL_PATH)
         
-        # 3. Encoder Yükle
         with open(ENCODER_PATH, 'rb') as f:
             encoder = pickle.load(f)
             
@@ -81,17 +79,9 @@ def load_components():
 
 def extract_embedding(yamnet, audio_data):
     """Sesten YAMNet özetini çıkar"""
-    # Normalizasyon
     waveform = audio_data / np.max(np.abs(audio_data) + 1e-9)
-    
-    # YAMNet Çalıştır
-    # Çıktılar: scores, embeddings, spectrogram
     _, embeddings, _ = yamnet(waveform)
-    
-    # Global Average Pooling (Tüm zamanların ortalaması)
     global_embedding = tf.reduce_mean(embeddings, axis=0).numpy()
-    
-    # Model (1, 1024) bekliyor
     return global_embedding.reshape(1, -1)
 
 def save_recording(audio, fs, filename_prefix="rec"):
@@ -105,7 +95,7 @@ def connect_arduino():
     """Arduino'ya bağlan"""
     try:
         arduino = serial.Serial(ARDUINO_PORT, ARDUINO_BAUD, timeout=1)
-        time.sleep(2)  # Arduino reset bekle
+        time.sleep(2)
         print(f"✅ Arduino bağlandı ({ARDUINO_PORT})")
         return arduino
     except Exception as e:
@@ -118,37 +108,128 @@ def send_to_arduino(arduino, label, confidence):
     if arduino is None:
         return
     try:
-        # LCD için Türkçe karakter düzeltme
         lcd_text = label.replace("ı", "i").replace("ğ", "g").replace("ü", "u").replace("ş", "s").replace("ö", "o").replace("ç", "c")
         lcd_text = lcd_text.replace("İ", "I").replace("Ğ", "G").replace("Ü", "U").replace("Ş", "S").replace("Ö", "O").replace("Ç", "C")
-        # Emoji kaldır
         for emoji in ['🍼', '😣', '💨', '😫', '😴']:
             lcd_text = lcd_text.replace(emoji, '')
         lcd_text = lcd_text.strip()
         
-        # İki satır: Üst satır sebep, alt satır güven
         message = f"{lcd_text[:16]}%{confidence:.0f} Guven"
         arduino.write(f"{message}\n".encode('ascii', errors='ignore'))
         print(f"📟 LCD'ye gönderildi: {lcd_text}")
     except Exception as e:
         print(f"⚠️ Arduino gönderim hatası: {e}")
 
+def send_status_to_arduino(arduino, line1, line2="", scroll=False, display_time=0):
+    """LCD'ye durum mesajı gönder (üst satır, alt satır)
+    scroll=True ise uzun yazılar kaydırılır
+    display_time>0 ise o kadar saniye ekranda kalır
+    """
+    if arduino is None:
+        return
+    
+    def fix_turkish(text):
+        text = text.replace("ı", "i").replace("ğ", "g").replace("ü", "u").replace("ş", "s").replace("ö", "o").replace("ç", "c")
+        text = text.replace("İ", "I").replace("Ğ", "G").replace("Ü", "U").replace("Ş", "S").replace("Ö", "O").replace("Ç", "C")
+        for emoji in ['🍼', '😣', '💨', '😫', '😴', '👂', '🔉', '❌', '✅', '🎯', '👶']:
+            text = text.replace(emoji, '')
+        return text.strip()
+    
+    try:
+        l1 = fix_turkish(line1)
+        l2 = fix_turkish(line2)
+        
+        if scroll and (len(l1) > 10 or len(l2) > 10):
+            # Kayan yazı modu - döngü halinde
+            l1_padded = "   " + l1 + "   " if len(l1) > 10 else l1.center(16)
+            l2_padded = "   " + l2 + "   " if len(l2) > 10 else l2.center(16)
+            
+            scroll_speed = 0.3
+            start_time = time.time()
+            total_time = display_time if display_time > 0 else 3
+            
+            while (time.time() - start_time) < total_time:
+                max_steps = max(len(l1_padded), len(l2_padded)) - 15
+                for i in range(max(1, max_steps)):
+                    if (time.time() - start_time) >= total_time:
+                        break
+                    s1 = l1_padded[i:i+16] if len(l1_padded) > 16 else l1_padded[:16]
+                    s2 = l2_padded[i:i+16] if len(l2_padded) > 16 else l2_padded[:16]
+                    message = f"{s1}%{s2}"
+                    arduino.write(f"{message}\n".encode('ascii', errors='ignore'))
+                    time.sleep(scroll_speed)
+        else:
+            message = f"{l1[:16]}%{l2[:16]}"
+            arduino.write(f"{message}\n".encode('ascii', errors='ignore'))
+            if display_time > 0:
+                time.sleep(display_time)
+                
+    except Exception as e:
+        print(f"⚠️ Arduino durum gönderim hatası: {e}")
+
+def read_sensor_data(arduino):
+    """Arduino'dan sensör verisi oku"""
+    if arduino is None:
+        return None, None
+    try:
+        arduino.write(b"GET_SENSOR\n")
+        time.sleep(0.3)
+        
+        for _ in range(5):
+            if arduino.in_waiting > 0:
+                line = arduino.readline().decode('ascii', errors='ignore').strip()
+                print(f"   [DEBUG] Arduino: {line}")
+                if line.startswith("SENSOR:"):
+                    data = line.replace("SENSOR:", "").split(",")
+                    if len(data) == 2:
+                        temp = float(data[0])
+                        hum = float(data[1])
+                        return temp, hum
+            time.sleep(0.1)
+    except Exception as e:
+        print(f"   [DEBUG] Sensör okuma hatası: {e}")
+    return None, None
+
+def check_environment(temp, hum):
+    """Ortam koşullarını kontrol et ve uyarı mesajı döndür"""
+    warnings = []
+    lcd_warnings = []
+    
+    TEMP_HIGH = 28.0
+    TEMP_LOW = 18.0
+    HUM_HIGH = 70.0
+    HUM_LOW = 30.0
+    
+    if temp is not None:
+        if temp > TEMP_HIGH:
+            warnings.append(f"🌡️ Sıcak! ({temp:.1f}°C) - Bebek terliyor olabilir")
+            lcd_warnings.append(("Terliyor Olabilir", f"Sicak {temp:.0f}C"))
+        elif temp < TEMP_LOW:
+            warnings.append(f"❄️ Soğuk! ({temp:.1f}°C) - Bebek üşüyor olabilir")
+            lcd_warnings.append(("Usuyor Olabilir", f"Soguk {temp:.0f}C"))
+    
+    if hum is not None:
+        if hum > HUM_HIGH:
+            warnings.append(f"💧 Nem yüksek! (%{hum:.0f}) - Bunaltıcı olabilir")
+            lcd_warnings.append(("Terliyor Olabilir", f"Nem Yuksek %{hum:.0f}"))
+        elif hum < HUM_LOW:
+            warnings.append(f"🏜️ Nem düşük! (%{hum:.0f}) - Hava kuru")
+            lcd_warnings.append(("Kuru Hava Uyarisi", f"Nem Dusuk %{hum:.0f}"))
+    
+    return warnings, lcd_warnings
+
 def ask_parent_followup(predicted_label, all_probs, classes, encoder):
-    """
-    Tespit edilen duruma göre ebeveyne takip soruları sorar ve öneride bulunur.
-    """
+    """Tespit edilen duruma göre ebeveyne takip soruları sorar ve öneride bulunur."""
     print("\n" + "="*50)
     print("📋 EBEVEYN TAKİP SORULARI")
     print("="*50)
     
-    # En yüksek ikinci olasılığı bul (alternatif öneri için)
     probs_with_labels = [(classes[i], all_probs[i]*100) for i in range(len(classes))]
     probs_with_labels.sort(key=lambda x: x[1], reverse=True)
     second_best_label = probs_with_labels[1][0] if len(probs_with_labels) > 1 else None
     second_best_tr = LABEL_TR.get(second_best_label, second_best_label) if second_best_label else "Diğer"
     
     if predicted_label == "hungry":
-        # AÇLIK TESPİTİ
         print("\n🍼 Açlık tespit edildi!")
         print("❓ Bebek son 2 saat içerisinde yemek yedi mi?")
         print("   [1] Evet")
@@ -159,7 +240,6 @@ def ask_parent_followup(predicted_label, all_probs, classes, encoder):
                 answer = input("\nCevabınızı girin (1 veya 2): ").strip()
                 if answer == "1":
                     print(f"\n💡 ÖNERİ: Bebek yakın zamanda yemek yediği için, ağlamanın sebebi {second_best_tr} olabilir.")
-                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
                     break
                 elif answer == "2":
                     print("\n🍼 SONUÇ: Bebeğiniz aç! Lütfen bebeğinizi besleyin.")
@@ -167,10 +247,9 @@ def ask_parent_followup(predicted_label, all_probs, classes, encoder):
                 else:
                     print("❌ Lütfen 1 veya 2 girin.")
             except ValueError:
-                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+                print("❌ Geçersiz giriş.")
     
     elif predicted_label == "discomfort":
-        # RAHATSIZLIK TESPİTİ
         print("\n😫 Rahatsızlık/Huzursuzluk tespit edildi!")
         print("❓ Bebeğin altı son 4 saat içerisinde temizlendi mi?")
         print("   [1] Evet")
@@ -181,7 +260,6 @@ def ask_parent_followup(predicted_label, all_probs, classes, encoder):
                 answer = input("\nCevabınızı girin (1 veya 2): ").strip()
                 if answer == "1":
                     print(f"\n💡 ÖNERİ: Bebeğin altı temiz olduğu için, ağlamanın sebebi {second_best_tr} olabilir.")
-                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
                     break
                 elif answer == "2":
                     print("\n🧷 SONUÇ: Bebeğinizin altını temizlemeniz gerekiyor!")
@@ -189,10 +267,9 @@ def ask_parent_followup(predicted_label, all_probs, classes, encoder):
                 else:
                     print("❌ Lütfen 1 veya 2 girin.")
             except ValueError:
-                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+                print("❌ Geçersiz giriş.")
     
     elif predicted_label == "tired":
-        # YORGUNLUK TESPİTİ
         print("\n😴 Yorgunluk tespit edildi!")
         print("❓ Bebek bugün toplam 12 saat uyudu mu?")
         print("   [1] Evet")
@@ -203,18 +280,16 @@ def ask_parent_followup(predicted_label, all_probs, classes, encoder):
                 answer = input("\nCevabınızı girin (1 veya 2): ").strip()
                 if answer == "1":
                     print(f"\n💡 ÖNERİ: Bebek yeterli uyku almış görünüyor, ağlamanın sebebi {second_best_tr} olabilir.")
-                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
                     break
                 elif answer == "2":
-                    print("\n🛏️ SONUÇ: Bebeğinizin uyuması gerekiyor! Lütfen onu uyutmaya çalışın.")
+                    print("\n🛏️ SONUÇ: Bebeğinizin uyuması gerekiyor!")
                     break
                 else:
                     print("❌ Lütfen 1 veya 2 girin.")
             except ValueError:
-                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+                print("❌ Geçersiz giriş.")
     
     elif predicted_label == "burping":
-        # GAZ/GEĞİRME TESPİTİ
         print("\n💨 Gaz/Geğirme tespit edildi!")
         print("❓ Bebek gazını çıkarabildi mi?")
         print("   [1] Evet")
@@ -225,18 +300,16 @@ def ask_parent_followup(predicted_label, all_probs, classes, encoder):
                 answer = input("\nCevabınızı girin (1 veya 2): ").strip()
                 if answer == "1":
                     print(f"\n💡 ÖNERİ: Bebek gazını çıkarmış görünüyor, ağlamanın sebebi {second_best_tr} olabilir.")
-                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
                     break
                 elif answer == "2":
-                    print("\n💨 SONUÇ: Bebeğinizin gazını çıkartması gerekiyor! Lütfen bebeğe gaz çıkartma egzersizleri yapın.")
+                    print("\n💨 SONUÇ: Bebeğinizin gazını çıkartması gerekiyor!")
                     break
                 else:
                     print("❌ Lütfen 1 veya 2 girin.")
             except ValueError:
-                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+                print("❌ Geçersiz giriş.")
     
     elif predicted_label == "belly_pain":
-        # KARIN AĞRISI TESPİTİ (Ek olarak ekledim)
         print("\n😣 Karın ağrısı tespit edildi!")
         print("❓ Bebek son öğünden sonra rahatsızlandı mı?")
         print("   [1] Evet")
@@ -247,16 +320,14 @@ def ask_parent_followup(predicted_label, all_probs, classes, encoder):
                 answer = input("\nCevabınızı girin (1 veya 2): ").strip()
                 if answer == "1":
                     print("\n⚠️ SONUÇ: Bebek yemekten sonra rahatsızlanmış olabilir. Gaz veya hazımsızlık olabilir.")
-                    print("   Bebeğin karnını hafifçe ovarak rahatlatmayı deneyin.")
                     break
                 elif answer == "2":
                     print(f"\n💡 ÖNERİ: Karın ağrısının başka bir sebebi olabilir veya {second_best_tr} durumu söz konusu olabilir.")
-                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
                     break
                 else:
                     print("❌ Lütfen 1 veya 2 girin.")
             except ValueError:
-                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+                print("❌ Geçersiz giriş.")
     
     else:
         print(f"\nℹ️ Tespit edilen durum: {LABEL_TR.get(predicted_label, predicted_label)}")
@@ -320,23 +391,19 @@ def main():
     print("\n" + "="*60)
     print(f"🎤 GELİŞMİŞ BEBEK AĞLAMASI ALGILAYICI (YAMNet)")
     print(f"⏱️  Kayıt Süresi: {DURATION} sn")
-    print(f"�️  Güven Eşiği: %{CONFIDENCE_THRESHOLD}")
+    print(f"🎯  Güven Eşiği: %{CONFIDENCE_THRESHOLD}")
     print("="*60 + "\n")
     
-    # Audio Buffer (Rolling Window) - 5 saniye
     BUFFER_SIZE = int(SAMPLE_RATE * DURATION)
-    CHUNK_SIZE = int(SAMPLE_RATE * 0.5) # 0.5 saniyelik okumalar
+    CHUNK_SIZE = int(SAMPLE_RATE * 0.5)
     
-    # Ring Buffer (Verimli)
     import collections
     audio_buffer = collections.deque(maxlen=BUFFER_SIZE)
     
-    # YAMNet Sınıf İsimlerini Yükle (Yamnet modelinden)
     try:
         class_map_path = yamnet.class_map_path().numpy().decode('utf-8')
         class_names = [x['display_name'] for x in tf.io.read_file(class_map_path).numpy().decode('utf-8').splitlines()[1:] for x in [dict(zip(['index', 'mid', 'display_name'], x.split(',')))]]
     except:
-        # Fallback (Standart YAMNet endeksleri)
         print("⚠️ YAMNet class map okunamadı, varsayılan endeksler kullanılıyor.")
         class_names = [] 
     
@@ -348,43 +415,30 @@ def main():
 
     print(f"👂 Dinleniyor... (Sessiz mod, ağlama bekleniyor)")
     
+    send_status_to_arduino(arduino, "Dinleniyor...", "Bebek bekleniyor")
+    
     last_log_time = time.time()
     
     try:
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=CHUNK_SIZE, device=device_index) as stream:
             while True:
-                # 1. Chunk Oku
                 chunk, _ = stream.read(CHUNK_SIZE)
                 chunk = chunk.flatten()
                 
-                # Buffer'a ekle
                 audio_buffer.extend(chunk)
                 
-                # Buffer dolmadan işlem yapma (ilk açılışta)
                 if len(audio_buffer) < BUFFER_SIZE:
                     continue
                 
-                # 2. RMS (Enerji) Kontrolü - Hızlı Eleme
-                # Son eklenen chunk'ın enerjisine bakıyoruz
                 rms = np.sqrt(np.mean(np.array(chunk)**2))
                 
                 if rms < RMS_THRESHOLD:
-                    # Sessiz, işlem yapma
-                    # print(f"Wait... RMS: {rms:.4f}", end="\r") 
                     continue
                 
-                # Ses var! Şimdi YAMNet ile ne sesi olduğuna bakalım.
-                # Buffer'ı numpy array'e çevir
                 full_audio = np.array(audio_buffer)
-                
-                # Normalizasyon
                 waveform = full_audio / np.max(np.abs(full_audio) + 1e-9)
                 
-                # 3. YAMNet "Gatekeeper" (Ön Eleme)
-                # Sadece skorları alalım
                 scores, embeddings, spectrogram = yamnet(waveform)
-                
-                # Skorların ortalamasını al (tüm klipler için)
                 mean_scores = np.mean(scores, axis=0)
                 
                 is_baby_crying = False
@@ -392,30 +446,25 @@ def main():
                 top_class_name = class_names[top3_indices[0]] if class_names else str(top3_indices[0])
                 top_score = mean_scores[top3_indices[0]] * 100
                 
-                # 'Baby Cry' kontrolü (YAMNet Sınıf ID'leri: 20=Baby cry, 21=Crying, 22=Whimper)
                 baby_indices = [20, 21, 22] 
                 
                 is_baby_crying = False
                 detected_baby_score = 0.0
                 
-                # Top 3 yerine DOĞRUDAN bu indekslerin puanına bakıyoruz
-                # Eğer herhangi biri > %5 - %10 ise tetikle
                 for idx in baby_indices:
                     score = mean_scores[idx] * 100
-                    if score > 5.0: # Çok hassas eşik (%5)
+                    if score > 5.0:
                         is_baby_crying = True
                         if score > detected_baby_score:
                             detected_baby_score = score
                 
                 current_time = time.time()
                 
-                # EŞİK KONTROLÜ: Score > 5.0 ise gir
                 if is_baby_crying:
                     print(f"\n👶 BEBEK AĞLAMASI TESPİT EDİLDİ! (Puan: %{detected_baby_score:.1f})")
                     print(f"   (Algılanan: {class_names[top3_indices[0]] if class_names else top3_indices[0]})")
                     print("🔍 Sebebi analizi ediliyor...")
                     
-                    # 4. Asıl Sınıflandırıcı (Transfer Learning)
                     global_embedding = np.mean(embeddings, axis=0).reshape(1, -1)
                     
                     prediction = classifier.predict(global_embedding, verbose=0)[0]
@@ -436,6 +485,18 @@ def main():
                         # Arduino'ya gönder
                         send_to_arduino(arduino, tr_label, confidence)
                         
+                        # Ortam kontrolü (Sensör verisi oku)
+                        time.sleep(0.5)
+                        temp, hum = read_sensor_data(arduino)
+                        if temp is not None or hum is not None:
+                            print(f"\n🌡️ Ortam: {temp:.1f}°C | 💧 Nem: %{hum:.0f}")
+                            env_warnings, lcd_warnings = check_environment(temp, hum)
+                            for i, warn in enumerate(env_warnings):
+                                print(f"   ⚠️ {warn}")
+                                if i < len(lcd_warnings):
+                                    line1, line2 = lcd_warnings[i]
+                                    send_status_to_arduino(arduino, line1, line2, scroll=True, display_time=5)
+                        
                         # Ebeveyne takip soruları sor
                         ask_parent_followup(predicted_label, prediction, classes, encoder)
                     
@@ -444,12 +505,12 @@ def main():
                     time.sleep(3)
                     audio_buffer.clear()
                     print("👂 Dinlemeye devam ediliyor...")
+                    send_status_to_arduino(arduino, "Dinleniyor...", "Bebek bekleniyor")
                 
                 else:
-                    # Bebek ağlaması YOKSA
-                    # Her 2.5 saniyede bir log bas (Sıklığı artırdım)
                     if current_time - last_log_time > 2.5:
                         print(f"🔉 Ses Var: {top_class_name} (%{top_score:.1f}) - Bebek Sesi Yok (<%5) ❌")
+                        send_status_to_arduino(arduino, f"Ses: {top_class_name[:10]}", f"%{top_score:.0f} - Bebek yok")
                         last_log_time = current_time
                  
     except Exception as e:
