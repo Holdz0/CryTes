@@ -75,7 +75,20 @@ class AudioCapture {
             val shortBuffer = ShortArray(chunkSamples)
             
             while (isActive) {
-                val readCount = audioRecord?.read(shortBuffer, 0, chunkSamples) ?: 0
+                val readCount = audioRecord?.read(shortBuffer, 0, chunkSamples) ?: -1
+                
+                if (readCount < 0) {
+                    val errorMsg = when (readCount) {
+                        AudioRecord.ERROR_INVALID_OPERATION -> "Invalid Operation"
+                        AudioRecord.ERROR_BAD_VALUE -> "Bad Value"
+                        AudioRecord.ERROR_DEAD_OBJECT -> "Dead Object"
+                        AudioRecord.ERROR -> "Unknown Error"
+                        else -> "Read Error: $readCount"
+                    }
+                    _audioEvents.emit(AudioEvent.Error(errorMsg))
+                    delay(1000) // Hata döngüsünü yavaşlat
+                    continue
+                }
                 
                 if (readCount > 0) {
                     // Short -> Float dönüşümü [-1.0, 1.0]
@@ -180,4 +193,5 @@ class AudioCapture {
 sealed class AudioEvent {
     data class AudioReady(val samples: FloatArray, val rms: Float) : AudioEvent()
     data class Silence(val rms: Float) : AudioEvent()
+    data class Error(val message: String) : AudioEvent()
 }
