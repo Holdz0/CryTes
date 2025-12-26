@@ -133,6 +133,113 @@ def send_to_arduino(arduino, label, confidence):
     except Exception as e:
         print(f"⚠️ Arduino gönderim hatası: {e}")
 
+def send_status_to_arduino(arduino, line1, line2="", scroll=False, display_time=0):
+    """LCD'ye durum mesajı gönder (üst satır, alt satır)
+    scroll=True ise uzun yazılar kaydırılır
+    display_time>0 ise o kadar saniye ekranda kalır
+    """
+    if arduino is None:
+        return
+    
+    # Türkçe karakter düzeltme
+    def fix_turkish(text):
+        text = text.replace("ı", "i").replace("ğ", "g").replace("ü", "u").replace("ş", "s").replace("ö", "o").replace("ç", "c")
+        text = text.replace("İ", "I").replace("Ğ", "G").replace("Ü", "U").replace("Ş", "S").replace("Ö", "O").replace("Ç", "C")
+        # Emoji kaldır
+        for emoji in ['🍼', '😣', '💨', '😫', '😴', '👂', '🔉', '❌', '✅', '🎯', '👶']:
+            text = text.replace(emoji, '')
+        return text.strip()
+    
+    try:
+        l1 = fix_turkish(line1)
+        l2 = fix_turkish(line2)
+        
+        if scroll and (len(l1) > 10 or len(l2) > 10):
+            # Kayan yazı modu - döngü halinde
+            # Başta ve sonda boşluk ekle (döngü için)
+            l1_padded = "   " + l1 + "   " if len(l1) > 10 else l1.center(16)
+            l2_padded = "   " + l2 + "   " if len(l2) > 10 else l2.center(16)
+            
+            scroll_speed = 0.3  # Her kaydırma arası bekleme
+            start_time = time.time()
+            total_time = display_time if display_time > 0 else 3  # Varsayılan 3 saniye
+            
+            # display_time süresince döngü halinde kaydır
+            while (time.time() - start_time) < total_time:
+                # Bir tur scroll yap
+                max_steps = max(len(l1_padded), len(l2_padded)) - 15
+                for i in range(max(1, max_steps)):
+                    if (time.time() - start_time) >= total_time:
+                        break
+                    s1 = l1_padded[i:i+16] if len(l1_padded) > 16 else l1_padded[:16]
+                    s2 = l2_padded[i:i+16] if len(l2_padded) > 16 else l2_padded[:16]
+                    message = f"{s1}%{s2}"
+                    arduino.write(f"{message}\n".encode('ascii', errors='ignore'))
+                    time.sleep(scroll_speed)
+        else:
+            # Normal mod
+            message = f"{l1[:16]}%{l2[:16]}"
+            arduino.write(f"{message}\n".encode('ascii', errors='ignore'))
+            if display_time > 0:
+                time.sleep(display_time)
+                
+    except Exception as e:
+        print(f"⚠️ Arduino durum gönderim hatası: {e}")
+
+def read_sensor_data(arduino):
+    """Arduino'dan sensör verisi oku"""
+    if arduino is None:
+        return None, None
+    try:
+        # Arduino'ya sensör verisi iste
+        arduino.write(b"GET_SENSOR\n")
+        time.sleep(0.3)  # Yanıt bekle
+        
+        # Birden fazla satır okumayı dene
+        for _ in range(5):
+            if arduino.in_waiting > 0:
+                line = arduino.readline().decode('ascii', errors='ignore').strip()
+                print(f"   [DEBUG] Arduino: {line}")  # Debug
+                if line.startswith("SENSOR:"):
+                    data = line.replace("SENSOR:", "").split(",")
+                    if len(data) == 2:
+                        temp = float(data[0])
+                        hum = float(data[1])
+                        return temp, hum
+            time.sleep(0.1)
+    except Exception as e:
+        print(f"   [DEBUG] Sensör okuma hatası: {e}")
+    return None, None
+
+def check_environment(temp, hum):
+    """Ortam koşullarını kontrol et ve uyarı mesajı döndür"""
+    warnings = []
+    lcd_warnings = []  # LCD için kısa mesajlar (üst satır, alt satır)
+    
+    # Eşik değerleri
+    TEMP_HIGH = 20.0  # Sıcak
+    TEMP_LOW = 18.0   # Soğuk
+    HUM_HIGH = 70.0   # Nemli
+    HUM_LOW = 30.0    # Kuru
+    
+    if temp is not None:
+        if temp > TEMP_HIGH:
+            warnings.append(f"🌡️ Sıcak! ({temp:.1f}°C) - Bebek terliyor olabilir")
+            lcd_warnings.append(("Terliyor Olabilir", f"Sicak {temp:.0f}C"))
+        elif temp < TEMP_LOW:
+            warnings.append(f"❄️ Soğuk! ({temp:.1f}°C) - Bebek üşüyor olabilir")
+            lcd_warnings.append(("Usuyor Olabilir", f"Soguk {temp:.0f}C"))
+    
+    if hum is not None:
+        if hum > HUM_HIGH:
+            warnings.append(f"💧 Nem yüksek! (%{hum:.0f}) - Bunaltıcı olabilir")
+            lcd_warnings.append(("Terliyor Olabilir", f"Nem Yuksek %{hum:.0f}"))
+        elif hum < HUM_LOW:
+            warnings.append(f"🏜️ Nem düşük! (%{hum:.0f}) - Hava kuru")
+            lcd_warnings.append(("Kuru Hava Uyarisi", f"Nem Dusuk %{hum:.0f}"))
+    
+    return warnings, lcd_warnings
+
 def select_microphone():
     print("\n🎧 MİKROFON SEÇİMİ")
     print("-" * 30)
@@ -216,6 +323,9 @@ def main():
     print("="*60 + "\n")
 
     print(f"👂 Dinleniyor... (Sessiz mod, ağlama bekleniyor)")
+    
+    # LCD'ye başlangıç mesajı
+    send_status_to_arduino(arduino, "Dinleniyor...", "Bebek bekleniyor")
     
     last_log_time = time.time()
     
@@ -304,18 +414,34 @@ def main():
                         
                         # Arduino'ya gönder
                         send_to_arduino(arduino, tr_label, confidence)
+                        
+                        # Ortam kontrolü (Sensör verisi oku)
+                        time.sleep(0.5)  # Arduino'nun sensör göndermesini bekle
+                        temp, hum = read_sensor_data(arduino)
+                        if temp is not None or hum is not None:
+                            print(f"\n🌡️ Ortam: {temp:.1f}°C | 💧 Nem: %{hum:.0f}")
+                            env_warnings, lcd_warnings = check_environment(temp, hum)
+                            for i, warn in enumerate(env_warnings):
+                                print(f"   ⚠️ {warn}")
+                                # LCD'ye kısa ortam uyarısı gönder (scroll + 5 saniye bekle)
+                                if i < len(lcd_warnings):
+                                    line1, line2 = lcd_warnings[i]
+                                    send_status_to_arduino(arduino, line1, line2, scroll=True, display_time=5)
                     
                     print("-" * 50)
                     print("💤 3 saniye bekleme...")
                     time.sleep(3)
                     audio_buffer.clear()
                     print("👂 Dinlemeye devam ediliyor...")
+                    send_status_to_arduino(arduino, "Dinleniyor...", "Bebek bekleniyor")
                 
                 else:
                     # Bebek ağlaması YOKSA
                     # Her 2.5 saniyede bir log bas (Sıklığı artırdım)
                     if current_time - last_log_time > 2.5:
                         print(f"🔉 Ses Var: {top_class_name} (%{top_score:.1f}) - Bebek Sesi Yok (<%5) ❌")
+                        # LCD'ye ses durumu gönder
+                        send_status_to_arduino(arduino, f"Ses: {top_class_name[:10]}", f"%{top_score:.0f} - Bebek yok")
                         last_log_time = current_time
                  
     except Exception as e:
