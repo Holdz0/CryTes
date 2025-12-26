@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Baby icon simplified -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30c-8.8,0 -16,7.2 -16,16c0,4.4 1.8,8.4 4.7,11.3L40,64h28l-2.7,-6.7c2.9,-2.9 4.7,-6.9 4.7,-11.3C70,37.2 62.8,30 54,30zM48,44c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2s2,0.9 2,2S49.1,44 48,44zM60,44c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2s2,0.9 2,2S61.1,44 60,44zM54,56c-3.3,0 -6,-2.7 -6,-6h12C60,53.3 57.3,56 54,56z"/>
+    
+    <!-- Sound waves -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M72,40c2.5,2.5 4,6 4,10s-1.5,7.5 -4,10"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M36,40c-2.5,2.5 -4,6 -4,10s1.5,7.5 4,10"/>
+        
+</vector>
