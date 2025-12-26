@@ -1,6 +1,7 @@
 package com.ciona.babycry.ml
 
 import android.content.Context
+import android.util.Log
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -21,6 +22,7 @@ import java.nio.channels.FileChannel
 class CryClassifier(context: Context) {
     
     companion object {
+        private const val TAG = "CryClassifier"
         private const val MODEL_FILE = "cry_classifier.tflite"
         private const val EMBEDDING_SIZE = 1024
         private const val NUM_CLASSES = 5
@@ -55,66 +57,121 @@ class CryClassifier(context: Context) {
     }
     
     private var interpreter: Interpreter? = null
+    private var inputShape: IntArray? = null
+    private var outputShape: IntArray? = null
     
     init {
-        val model = loadModelFile(context, MODEL_FILE)
-        interpreter = Interpreter(model)
+        try {
+            val model = loadModelFile(context, MODEL_FILE)
+            val options = Interpreter.Options().apply {
+                setNumThreads(2)
+            }
+            interpreter = Interpreter(model, options)
+            
+            // Model yapısını analiz et
+            analyzeModel()
+            
+            Log.d(TAG, "CryClassifier model loaded successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load CryClassifier model", e)
+            throw e
+        }
+    }
+    
+    private fun analyzeModel() {
+        val interp = interpreter ?: return
+        
+        inputShape = interp.getInputTensor(0).shape()
+        outputShape = interp.getOutputTensor(0).shape()
+        
+        Log.d(TAG, "Input shape: ${inputShape?.contentToString()}")
+        Log.d(TAG, "Output shape: ${outputShape?.contentToString()}")
     }
     
     /**
      * Embedding'den sebep sınıflandırması yap
-     * 
-     * @param embedding 1024 boyutlu YAMNet özellik vektörü
-     * @return ClassificationResult tüm sınıf olasılıkları ile
      */
     fun classify(embedding: FloatArray): ClassificationResult {
-        val interpreter = this.interpreter ?: throw IllegalStateException("Model not loaded")
+        val interp = interpreter ?: return createDefaultResult()
         
-        require(embedding.size == EMBEDDING_SIZE) {
-            "Embedding size must be $EMBEDDING_SIZE, got ${embedding.size}"
-        }
-        
-        // Input tensor hazırla
-        val inputBuffer = ByteBuffer.allocateDirect(EMBEDDING_SIZE * 4)
-            .order(ByteOrder.nativeOrder())
-        for (value in embedding) {
-            inputBuffer.putFloat(value)
-        }
-        inputBuffer.rewind()
-        
-        // Output tensor hazırla
-        val outputBuffer = ByteBuffer.allocateDirect(NUM_CLASSES * 4)
-            .order(ByteOrder.nativeOrder())
-        
-        // Model çalıştır
-        interpreter.run(inputBuffer, outputBuffer)
-        
-        // Sonuçları oku
-        outputBuffer.rewind()
-        val probabilities = FloatArray(NUM_CLASSES)
-        for (i in 0 until NUM_CLASSES) {
-            probabilities[i] = outputBuffer.float
-        }
-        
-        // En yüksek olasılıklı sınıfı bul
-        var maxIdx = 0
-        var maxProb = probabilities[0]
-        for (i in 1 until NUM_CLASSES) {
-            if (probabilities[i] > maxProb) {
-                maxProb = probabilities[i]
-                maxIdx = i
+        try {
+            // Embedding boyutunu kontrol et
+            val actualInputSize = inputShape?.lastOrNull() ?: EMBEDDING_SIZE
+            
+            // Input tensor hazırla
+            val inputBuffer = ByteBuffer.allocateDirect(actualInputSize * 4)
+                .order(ByteOrder.nativeOrder())
+            
+            for (i in 0 until actualInputSize) {
+                val value = if (i < embedding.size) embedding[i] else 0f
+                inputBuffer.putFloat(value)
             }
+            inputBuffer.rewind()
+            
+            // Output tensor hazırla
+            val outputSize = outputShape?.lastOrNull() ?: NUM_CLASSES
+            val outputBuffer = ByteBuffer.allocateDirect(outputSize * 4)
+                .order(ByteOrder.nativeOrder())
+            
+            // Model çalıştır
+            interp.run(inputBuffer, outputBuffer)
+            
+            // Sonuçları oku
+            outputBuffer.rewind()
+            val probabilities = FloatArray(outputSize)
+            for (i in 0 until outputSize) {
+                probabilities[i] = outputBuffer.float
+            }
+            
+            // Softmax uygula (eğer gerekiyorsa)
+            val normalizedProbs = softmax(probabilities)
+            
+            // En yüksek olasılıklı sınıfı bul
+            var maxIdx = 0
+            var maxProb = normalizedProbs[0]
+            for (i in 1 until minOf(normalizedProbs.size, NUM_CLASSES)) {
+                if (normalizedProbs[i] > maxProb) {
+                    maxProb = normalizedProbs[i]
+                    maxIdx = i
+                }
+            }
+            
+            val predictedClass = if (maxIdx < CLASS_NAMES.size) CLASS_NAMES[maxIdx] else "unknown"
+            
+            Log.d(TAG, "Predicted: $predictedClass with ${maxProb * 100}% confidence")
+            
+            return ClassificationResult(
+                predictedClass = predictedClass,
+                predictedLabel = CLASS_LABELS_TR[predictedClass] ?: predictedClass,
+                emoji = CLASS_EMOJIS[predictedClass] ?: "❓",
+                confidence = maxProb,
+                isConfident = maxProb >= CONFIDENCE_THRESHOLD,
+                allProbabilities = CLASS_NAMES.take(minOf(CLASS_NAMES.size, normalizedProbs.size))
+                    .zip(normalizedProbs.toList()).toMap()
+            )
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during classification", e)
+            return createDefaultResult()
         }
-        
-        val predictedClass = CLASS_NAMES[maxIdx]
-        
+    }
+    
+    private fun softmax(logits: FloatArray): FloatArray {
+        val maxLogit = logits.maxOrNull() ?: 0f
+        val expSum = logits.sumOf { kotlin.math.exp((it - maxLogit).toDouble()) }
+        return FloatArray(logits.size) { 
+            (kotlin.math.exp((logits[it] - maxLogit).toDouble()) / expSum).toFloat()
+        }
+    }
+    
+    private fun createDefaultResult(): ClassificationResult {
         return ClassificationResult(
-            predictedClass = predictedClass,
-            predictedLabel = CLASS_LABELS_TR[predictedClass] ?: predictedClass,
-            emoji = CLASS_EMOJIS[predictedClass] ?: "❓",
-            confidence = maxProb,
-            isConfident = maxProb >= CONFIDENCE_THRESHOLD,
-            allProbabilities = CLASS_NAMES.zip(probabilities.toList()).toMap()
+            predictedClass = "unknown",
+            predictedLabel = "Bilinmiyor",
+            emoji = "❓",
+            confidence = 0f,
+            isConfident = false,
+            allProbabilities = emptyMap()
         )
     }
     
@@ -143,12 +200,12 @@ class CryClassifier(context: Context) {
  * Sınıflandırma sonucu
  */
 data class ClassificationResult(
-    val predictedClass: String,              // Tahmin edilen sınıf (İngilizce)
-    val predictedLabel: String,              // Türkçe etiket
-    val emoji: String,                       // İlgili emoji
-    val confidence: Float,                   // Güven oranı (0-1)
-    val isConfident: Boolean,                // Eşiği geçti mi?
-    val allProbabilities: Map<String, Float> // Tüm sınıf olasılıkları
+    val predictedClass: String,
+    val predictedLabel: String,
+    val emoji: String,
+    val confidence: Float,
+    val isConfident: Boolean,
+    val allProbabilities: Map<String, Float>
 ) {
     /**
      * LCD için ASCII temizlenmiş metin
