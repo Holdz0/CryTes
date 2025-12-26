@@ -21,7 +21,7 @@ import tensorflow as tf
 # KONFİGÜRASYON
 # =============================================================================
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(SCRIPT_DIR, "baby_cry_model.h5")
+MODEL_PATH = os.path.join(SCRIPT_DIR, "yamnet_transfer_model.h5")
 ENCODER_PATH = os.path.join(SCRIPT_DIR, "label_encoder.pkl")
 SCALER_PATH = os.path.join(SCRIPT_DIR, "scaler.pkl")
 DATASET_PATH = os.path.join(SCRIPT_DIR, "dataset")
