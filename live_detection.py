@@ -16,7 +16,7 @@ import tensorflow_hub as hub
 import serial
 import time
 
-# TensorFlow log seviyesini ayarla
+# TensorFlow log seviyesini ayarlaa
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # =============================================================================
