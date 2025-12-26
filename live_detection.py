@@ -192,55 +192,136 @@ def main():
     print(f"�️  Güven Eşiği: %{CONFIDENCE_THRESHOLD}")
     print("="*60 + "\n")
     
+    # Audio Buffer (Rolling Window) - 5 saniye
+    BUFFER_SIZE = int(SAMPLE_RATE * DURATION)
+    CHUNK_SIZE = int(SAMPLE_RATE * 0.5) # 0.5 saniyelik okumalar
+    
+    # Ring Buffer (Verimli)
+    import collections
+    audio_buffer = collections.deque(maxlen=BUFFER_SIZE)
+    
+    # YAMNet Sınıf İsimlerini Yükle (Yamnet modelinden)
     try:
-        with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=block_size, device=device_index) as stream:
+        class_map_path = yamnet.class_map_path().numpy().decode('utf-8')
+        class_names = [x['display_name'] for x in tf.io.read_file(class_map_path).numpy().decode('utf-8').splitlines()[1:] for x in [dict(zip(['index', 'mid', 'display_name'], x.split(',')))]]
+    except:
+        # Fallback (Standart YAMNet endeksleri)
+        print("⚠️ YAMNet class map okunamadı, varsayılan endeksler kullanılıyor.")
+        class_names = [] 
+    
+    print("\n" + "="*60)
+    print(f"🎤 GELİŞMİŞ BEBEK AĞLAMASI ALGILAYICI (SMART LISTEN)")
+    print(f"🧠 Mod: Sürekli Dinleme + Akıllı Tetikleme")
+    print(f"⏱️  Tampon Bellek: {DURATION} sn")
+    print("="*60 + "\n")
+
+    print(f"👂 Dinleniyor... (Sessiz mod, ağlama bekleniyor)")
+    
+    last_log_time = time.time()
+    
+    try:
+        with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=CHUNK_SIZE, device=device_index) as stream:
             while True:
-                print(f"⏳ {DURATION}sn dinleniyor...", end="\r")
+                # 1. Chunk Oku
+                chunk, _ = stream.read(CHUNK_SIZE)
+                chunk = chunk.flatten()
                 
-                audio_data, _ = stream.read(block_size)
-                audio_np = audio_data.flatten()
+                # Buffer'a ekle
+                audio_buffer.extend(chunk)
                 
-                # RMS Kontrol
-                rms = np.sqrt(np.mean(audio_np**2))
-                
-                if rms < RMS_THRESHOLD:
-                    print(f"🔇 Çok Sesiz (RMS: {rms:.4f})                ", end="\r")
+                # Buffer dolmadan işlem yapma (ilk açılışta)
+                if len(audio_buffer) < BUFFER_SIZE:
                     continue
                 
-                # Kaydet
-                save_recording(audio_np, SAMPLE_RATE, "detected_yamnet")
-                print(f"\n\n📢 SES ALGILANDI (RMS: {rms:.4f})")
+                # 2. RMS (Enerji) Kontrolü - Hızlı Eleme
+                # Son eklenen chunk'ın enerjisine bakıyoruz
+                rms = np.sqrt(np.mean(np.array(chunk)**2))
                 
-                try:
-                    # 1. YAMNet'ten geçir
-                    embedding = extract_embedding(yamnet, audio_np)
+                if rms < RMS_THRESHOLD:
+                    # Sessiz, işlem yapma
+                    # print(f"Wait... RMS: {rms:.4f}", end="\r") 
+                    continue
+                
+                # Ses var! Şimdi YAMNet ile ne sesi olduğuna bakalım.
+                # Buffer'ı numpy array'e çevir
+                full_audio = np.array(audio_buffer)
+                
+                # Normalizasyon
+                waveform = full_audio / np.max(np.abs(full_audio) + 1e-9)
+                
+                # 3. YAMNet "Gatekeeper" (Ön Eleme)
+                # Sadece skorları alalım
+                scores, embeddings, spectrogram = yamnet(waveform)
+                
+                # Skorların ortalamasını al (tüm klipler için)
+                mean_scores = np.mean(scores, axis=0)
+                
+                is_baby_crying = False
+                top3_indices = np.argsort(mean_scores)[::-1][:3]
+                top_class_name = class_names[top3_indices[0]] if class_names else str(top3_indices[0])
+                top_score = mean_scores[top3_indices[0]] * 100
+                
+                # 'Baby Cry' kontrolü (YAMNet Sınıf ID'leri: 20=Baby cry, 21=Crying, 22=Whimper)
+                baby_indices = [20, 21, 22] 
+                
+                is_baby_crying = False
+                detected_baby_score = 0.0
+                
+                # Top 3 yerine DOĞRUDAN bu indekslerin puanına bakıyoruz
+                # Eğer herhangi biri > %5 - %10 ise tetikle
+                for idx in baby_indices:
+                    score = mean_scores[idx] * 100
+                    if score > 5.0: # Çok hassas eşik (%5)
+                        is_baby_crying = True
+                        if score > detected_baby_score:
+                            detected_baby_score = score
+                
+                current_time = time.time()
+                
+                # EŞİK KONTROLÜ: Score > 5.0 ise gir
+                if is_baby_crying:
+                    print(f"\n👶 BEBEK AĞLAMASI TESPİT EDİLDİ! (Puan: %{detected_baby_score:.1f})")
+                    print(f"   (Algılanan: {class_names[top3_indices[0]] if class_names else top3_indices[0]})")
+                    print("🔍 Sebebi analizi ediliyor...")
                     
-                    # 2. Sınıflandır
-                    prediction = classifier.predict(embedding, verbose=0)[0]
+                    # 4. Asıl Sınıflandırıcı (Transfer Learning)
+                    global_embedding = np.mean(embeddings, axis=0).reshape(1, -1)
                     
-                    predicted_index = np.argmax(prediction)
-                    confidence = prediction[predicted_index] * 100
+                    prediction = classifier.predict(global_embedding, verbose=0)[0]
+                    predicted_idx = np.argmax(prediction)
+                    confidence = prediction[predicted_idx] * 100
                     
                     if confidence < CONFIDENCE_THRESHOLD:
-                        print(f"⚠️  Düşük Güven (%{confidence:.1f}).")
-                        print_prediction_bar(prediction, classes, predicted_index)
+                        print(f"⚠️  Belirsiz Sonuç (%{confidence:.1f})")
+                        print_prediction_bar(prediction, classes, predicted_idx)
                     else:
-                        predicted_label = encoder.inverse_transform([predicted_index])[0]
+                        predicted_label = encoder.inverse_transform([predicted_idx])[0]
                         tr_label = LABEL_TR.get(predicted_label, predicted_label)
                         
-                        print(f"🎯 TESPİT: {tr_label}")
-                        print(f"✅ Güven:  %{confidence:.1f}")
-                        print_prediction_bar(prediction, classes, predicted_index)
+                        print(f"🎯 SONUÇ: {tr_label}")
+                        print(f"✅ Güven: %{confidence:.1f}")
+                        print_prediction_bar(prediction, classes, predicted_idx)
                         
                         # Arduino'ya gönder
                         send_to_arduino(arduino, tr_label, confidence)
-                        
-                    print("-" * 50)
                     
-                except Exception as e:
-                    print(f"❌ Analiz Hatası: {e}")
-                    import traceback
-                    traceback.print_exc()
+                    print("-" * 50)
+                    print("💤 3 saniye bekleme...")
+                    time.sleep(3)
+                    audio_buffer.clear()
+                    print("👂 Dinlemeye devam ediliyor...")
+                
+                else:
+                    # Bebek ağlaması YOKSA
+                    # Her 2.5 saniyede bir log bas (Sıklığı artırdım)
+                    if current_time - last_log_time > 2.5:
+                        print(f"🔉 Ses Var: {top_class_name} (%{top_score:.1f}) - Bebek Sesi Yok (<%5) ❌")
+                        last_log_time = current_time
+                 
+    except Exception as e:
+        print(f"\n❌ Beklenmeyen Hata: {e}")
+        import traceback
+        traceback.print_exc()
 
     except KeyboardInterrupt:
         print("\n🛑 Çıkış.")
