@@ -133,6 +133,137 @@ def send_to_arduino(arduino, label, confidence):
     except Exception as e:
         print(f"⚠️ Arduino gönderim hatası: {e}")
 
+def ask_parent_followup(predicted_label, all_probs, classes, encoder):
+    """
+    Tespit edilen duruma göre ebeveyne takip soruları sorar ve öneride bulunur.
+    """
+    print("\n" + "="*50)
+    print("📋 EBEVEYN TAKİP SORULARI")
+    print("="*50)
+    
+    # En yüksek ikinci olasılığı bul (alternatif öneri için)
+    probs_with_labels = [(classes[i], all_probs[i]*100) for i in range(len(classes))]
+    probs_with_labels.sort(key=lambda x: x[1], reverse=True)
+    second_best_label = probs_with_labels[1][0] if len(probs_with_labels) > 1 else None
+    second_best_tr = LABEL_TR.get(second_best_label, second_best_label) if second_best_label else "Diğer"
+    
+    if predicted_label == "hungry":
+        # AÇLIK TESPİTİ
+        print("\n🍼 Açlık tespit edildi!")
+        print("❓ Bebek son 2 saat içerisinde yemek yedi mi?")
+        print("   [1] Evet")
+        print("   [2] Hayır")
+        
+        while True:
+            try:
+                answer = input("\nCevabınızı girin (1 veya 2): ").strip()
+                if answer == "1":
+                    print(f"\n💡 ÖNERİ: Bebek yakın zamanda yemek yediği için, ağlamanın sebebi {second_best_tr} olabilir.")
+                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
+                    break
+                elif answer == "2":
+                    print("\n🍼 SONUÇ: Bebeğiniz aç! Lütfen bebeğinizi besleyin.")
+                    break
+                else:
+                    print("❌ Lütfen 1 veya 2 girin.")
+            except ValueError:
+                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+    
+    elif predicted_label == "discomfort":
+        # RAHATSIZLIK TESPİTİ
+        print("\n😫 Rahatsızlık/Huzursuzluk tespit edildi!")
+        print("❓ Bebeğin altı son 4 saat içerisinde temizlendi mi?")
+        print("   [1] Evet")
+        print("   [2] Hayır")
+        
+        while True:
+            try:
+                answer = input("\nCevabınızı girin (1 veya 2): ").strip()
+                if answer == "1":
+                    print(f"\n💡 ÖNERİ: Bebeğin altı temiz olduğu için, ağlamanın sebebi {second_best_tr} olabilir.")
+                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
+                    break
+                elif answer == "2":
+                    print("\n🧷 SONUÇ: Bebeğinizin altını temizlemeniz gerekiyor!")
+                    break
+                else:
+                    print("❌ Lütfen 1 veya 2 girin.")
+            except ValueError:
+                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+    
+    elif predicted_label == "tired":
+        # YORGUNLUK TESPİTİ
+        print("\n😴 Yorgunluk tespit edildi!")
+        print("❓ Bebek bugün toplam 12 saat uyudu mu?")
+        print("   [1] Evet")
+        print("   [2] Hayır")
+        
+        while True:
+            try:
+                answer = input("\nCevabınızı girin (1 veya 2): ").strip()
+                if answer == "1":
+                    print(f"\n💡 ÖNERİ: Bebek yeterli uyku almış görünüyor, ağlamanın sebebi {second_best_tr} olabilir.")
+                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
+                    break
+                elif answer == "2":
+                    print("\n🛏️ SONUÇ: Bebeğinizin uyuması gerekiyor! Lütfen onu uyutmaya çalışın.")
+                    break
+                else:
+                    print("❌ Lütfen 1 veya 2 girin.")
+            except ValueError:
+                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+    
+    elif predicted_label == "burping":
+        # GAZ/GEĞİRME TESPİTİ
+        print("\n💨 Gaz/Geğirme tespit edildi!")
+        print("❓ Bebek gazını çıkarabildi mi?")
+        print("   [1] Evet")
+        print("   [2] Hayır")
+        
+        while True:
+            try:
+                answer = input("\nCevabınızı girin (1 veya 2): ").strip()
+                if answer == "1":
+                    print(f"\n💡 ÖNERİ: Bebek gazını çıkarmış görünüyor, ağlamanın sebebi {second_best_tr} olabilir.")
+                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
+                    break
+                elif answer == "2":
+                    print("\n💨 SONUÇ: Bebeğinizin gazını çıkartması gerekiyor! Lütfen bebeğe gaz çıkartma egzersizleri yapın.")
+                    break
+                else:
+                    print("❌ Lütfen 1 veya 2 girin.")
+            except ValueError:
+                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+    
+    elif predicted_label == "belly_pain":
+        # KARIN AĞRISI TESPİTİ (Ek olarak ekledim)
+        print("\n😣 Karın ağrısı tespit edildi!")
+        print("❓ Bebek son öğünden sonra rahatsızlandı mı?")
+        print("   [1] Evet")
+        print("   [2] Hayır")
+        
+        while True:
+            try:
+                answer = input("\nCevabınızı girin (1 veya 2): ").strip()
+                if answer == "1":
+                    print("\n⚠️ SONUÇ: Bebek yemekten sonra rahatsızlanmış olabilir. Gaz veya hazımsızlık olabilir.")
+                    print("   Bebeğin karnını hafifçe ovarak rahatlatmayı deneyin.")
+                    break
+                elif answer == "2":
+                    print(f"\n💡 ÖNERİ: Karın ağrısının başka bir sebebi olabilir veya {second_best_tr} durumu söz konusu olabilir.")
+                    print(f"   İkinci en yüksek tespit: {second_best_tr} (%{probs_with_labels[1][1]:.1f})")
+                    break
+                else:
+                    print("❌ Lütfen 1 veya 2 girin.")
+            except ValueError:
+                print("❌ Geçersiz giriş. Lütfen 1 veya 2 girin.")
+    
+    else:
+        print(f"\nℹ️ Tespit edilen durum: {LABEL_TR.get(predicted_label, predicted_label)}")
+        print("   Bu durum için özel bir takip sorusu bulunmuyor.")
+    
+    print("\n" + "="*50)
+
 def select_microphone():
     print("\n🎧 MİKROFON SEÇİMİ")
     print("-" * 30)
@@ -304,6 +435,9 @@ def main():
                         
                         # Arduino'ya gönder
                         send_to_arduino(arduino, tr_label, confidence)
+                        
+                        # Ebeveyne takip soruları sor
+                        ask_parent_followup(predicted_label, prediction, classes, encoder)
                     
                     print("-" * 50)
                     print("💤 3 saniye bekleme...")
