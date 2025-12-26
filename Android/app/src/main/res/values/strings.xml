@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Crytes</string>
+    
+    <!-- UI Strings -->
+    <string name="status_waiting">Modeller yükleniyor...</string>
+    <string name="status_listening">Dinleniyor...</string>
+    <string name="status_processing">Analiz ediliyor...</string>
+    <string name="status_detected">Bebek ağlaması tespit edildi!</string>
+    
+    <!-- Cry Labels -->
+    <string name="label_hungry">Açlık 🍼</string>
+    <string name="label_belly_pain">Karın Ağrısı 😣</string>
+    <string name="label_burping">Gaz/Geğirme 💨</string>
+    <string name="label_discomfort">Rahatsızlık 😫</string>
+    <string name="label_tired">Yorgunluk 😴</string>
+    
+    <!-- Arduino -->
+    <string name="arduino_connected">Arduino bağlı</string>
+    <string name="arduino_disconnected">Arduino bağlı değil</string>
+    
+    <!-- Permissions -->
+    <string name="permission_required">Mikrofon izni gerekli</string>
+</resources>
