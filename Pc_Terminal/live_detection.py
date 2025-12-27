@@ -190,6 +190,35 @@ def read_sensor_data(arduino):
         print(f"   [DEBUG] Sensör okuma hatası: {e}")
     return None, None
 
+def set_traffic_light(arduino, state):
+    """
+    Trafik lambasını kontrol et (Pin 3=Yeşil, Pin 4=Sarı, Pin 5=Kırmızı)
+    state: 'GREEN' (sessiz), 'YELLOW' (ağlama harici ses), 'RED' (bebek ağlıyor)
+    """
+    if arduino is None:
+        return
+    try:
+        arduino.write(f"LIGHT:{state}\n".encode('ascii', errors='ignore'))
+        state_tr = {'GREEN': '🟢 Yeşil (Sessiz)', 'YELLOW': '🟡 Sarı (Ses Var)', 'RED': '🔴 Kırmızı (Ağlama)'}
+        print(f"🚦 Trafik Lambası: {state_tr.get(state, state)}")
+    except Exception as e:
+        print(f"⚠️ Trafik lambası hatası: {e}")
+
+def play_lullaby(arduino):
+    """
+    Arduino'ya ninni çalma komutu gönder
+    Buzzer ile Dandini Dandini Dastana çalar, LED'ler sırayla yanar
+    """
+    if arduino is None:
+        return
+    try:
+        print("🎵 Ninni başlatılıyor (Dandini Dandini Dastana)...")
+        arduino.write(b"PLAY_LULLABY\n")
+        # Ninni yaklaşık 25-30 saniye sürer, o kadar bekle
+        print("   💤 Ninni çalıyor... (Lütfen bekleyin)")
+    except Exception as e:
+        print(f"⚠️ Ninni başlatma hatası: {e}")
+
 def check_environment(temp, hum):
     """Ortam koşullarını kontrol et ve uyarı mesajı döndür"""
     warnings = []
@@ -416,6 +445,7 @@ def main():
     print(f"👂 Dinleniyor... (Sessiz mod, ağlama bekleniyor)")
     
     send_status_to_arduino(arduino, "Dinleniyor...", "Bebek bekleniyor")
+    set_traffic_light(arduino, 'GREEN')  # Başlangıçta yeşil - sessiz
     
     last_log_time = time.time()
     
@@ -433,6 +463,7 @@ def main():
                 rms = np.sqrt(np.mean(np.array(chunk)**2))
                 
                 if rms < RMS_THRESHOLD:
+                    set_traffic_light(arduino, 'GREEN')  # Sessiz - yeşil
                     continue
                 
                 full_audio = np.array(audio_buffer)
@@ -461,6 +492,7 @@ def main():
                 current_time = time.time()
                 
                 if is_baby_crying:
+                    set_traffic_light(arduino, 'RED')  # Bebek ağlıyor - kırmızı
                     print(f"\n👶 BEBEK AĞLAMASI TESPİT EDİLDİ! (Puan: %{detected_baby_score:.1f})")
                     print(f"   (Algılanan: {class_names[top3_indices[0]] if class_names else top3_indices[0]})")
                     print("🔍 Sebebi analizi ediliyor...")
@@ -471,34 +503,44 @@ def main():
                     predicted_idx = np.argmax(prediction)
                     confidence = prediction[predicted_idx] * 100
                     
+                    # Her zaman en yüksek sonucu göster ve Arduino'ya gönder
+                    predicted_label = encoder.inverse_transform([predicted_idx])[0]
+                    tr_label = LABEL_TR.get(predicted_label, predicted_label)
+                    
                     if confidence < CONFIDENCE_THRESHOLD:
-                        print(f"⚠️  Belirsiz Sonuç (%{confidence:.1f})")
-                        print_prediction_bar(prediction, classes, predicted_idx)
+                        print(f"⚠️  Düşük Güven (%{confidence:.1f}) - Yine de en yüksek sonuç gösteriliyor")
                     else:
-                        predicted_label = encoder.inverse_transform([predicted_idx])[0]
-                        tr_label = LABEL_TR.get(predicted_label, predicted_label)
-                        
-                        print(f"🎯 SONUÇ: {tr_label}")
                         print(f"✅ Güven: %{confidence:.1f}")
-                        print_prediction_bar(prediction, classes, predicted_idx)
-                        
-                        # Arduino'ya gönder
-                        send_to_arduino(arduino, tr_label, confidence)
-                        
-                        # Ortam kontrolü (Sensör verisi oku)
-                        time.sleep(0.5)
-                        temp, hum = read_sensor_data(arduino)
-                        if temp is not None or hum is not None:
-                            print(f"\n🌡️ Ortam: {temp:.1f}°C | 💧 Nem: %{hum:.0f}")
-                            env_warnings, lcd_warnings = check_environment(temp, hum)
-                            for i, warn in enumerate(env_warnings):
-                                print(f"   ⚠️ {warn}")
-                                if i < len(lcd_warnings):
-                                    line1, line2 = lcd_warnings[i]
-                                    send_status_to_arduino(arduino, line1, line2, scroll=True, display_time=5)
-                        
-                        # Ebeveyne takip soruları sor
-                        ask_parent_followup(predicted_label, prediction, classes, encoder)
+                    
+                    print(f"🎯 SONUÇ: {tr_label}")
+                    print_prediction_bar(prediction, classes, predicted_idx)
+                    
+                    # Arduino'ya gönder (güven düşük olsa bile)
+                    send_to_arduino(arduino, tr_label, confidence)
+                    
+                    # Ortam kontrolü (Sensör verisi oku)
+                    time.sleep(0.5)
+                    temp, hum = read_sensor_data(arduino)
+                    if temp is not None and hum is not None:
+                        print(f"\n🌡️ Ortam: {temp:.1f}°C | 💧 Nem: %{hum:.0f}")
+                        env_warnings, lcd_warnings = check_environment(temp, hum)
+                        for i, warn in enumerate(env_warnings):
+                            print(f"   ⚠️ {warn}")
+                            if i < len(lcd_warnings):
+                                line1, line2 = lcd_warnings[i]
+                                send_status_to_arduino(arduino, line1, line2, scroll=True, display_time=5)
+                    
+                    # Yorgunluk veya Rahatsızlık ise ninni çal
+                    if predicted_label in ['tired', 'discomfort']:
+                        print("\n🌙 Bebek yorgun/rahatsız - Ninni başlatılıyor...")
+                        send_status_to_arduino(arduino, "Ninni Caliyor", "Dandini Dastana")
+                        play_lullaby(arduino)
+                        # Ninni süresince bekle (yaklaşık 30 saniye)
+                        time.sleep(30)
+                        print("🎵 Ninni tamamlandı.")
+                    
+                    # Ebeveyne takip soruları sor
+                    ask_parent_followup(predicted_label, prediction, classes, encoder)
                     
                     print("-" * 50)
                     print("💤 3 saniye bekleme...")
@@ -508,6 +550,7 @@ def main():
                     send_status_to_arduino(arduino, "Dinleniyor...", "Bebek bekleniyor")
                 
                 else:
+                    set_traffic_light(arduino, 'YELLOW')  # Ağlama harici ses - sarı
                     if current_time - last_log_time > 2.5:
                         print(f"🔉 Ses Var: {top_class_name} (%{top_score:.1f}) - Bebek Sesi Yok (<%5) ❌")
                         send_status_to_arduino(arduino, f"Ses: {top_class_name[:10]}", f"%{top_score:.0f} - Bebek yok")
