@@ -325,8 +325,6 @@ class MainActivity : AppCompatActivity() {
                 if (now - lastSerialSendTime >= SERIAL_SEND_INTERVAL) {
                     lastSerialSendTime = now
                     try {
-                        // İngilizce etiketleri basitçe Türkçeye çevirip gönderelim veya olduğu gibi
-                        // YAMNet sınıfları genelde İngilizce: "Speech", "Music", "Silence" vs.
                         val labelToSend = when(yamnetResult.topClassName) {
                             "Speech" -> "Konusma"
                             "Silence" -> "Sessizlik"
@@ -334,8 +332,9 @@ class MainActivity : AppCompatActivity() {
                             else -> yamnetResult.topClassName
                         }
                         
-                        // IO thread'de gönder
-                        arduinoSerial?.sendResult(labelToSend)
+                        val score = (yamnetResult.topScore * 100).toInt()
+                        // Python formatı: "Ses: {Class} %{Score} - Bebek yok"
+                        arduinoSerial?.sendInfo("Ses: $labelToSend", "%$score - Bebek yok")
                     } catch (e: Exception) {
                         Log.e(TAG, "Non-cry serial error", e)
                     }
@@ -363,7 +362,6 @@ class MainActivity : AppCompatActivity() {
             
             // Sonucu listeye ekle
             detectionResults.add(result)
-            Log.d(TAG, "Detection added: ${result.predictedLabel} (${detectionResults.size} samples)")
             
             // Anlık güncelleme göster
             val elapsedSeconds = (System.currentTimeMillis() - detectionStartTime) / 1000
@@ -374,33 +372,65 @@ class MainActivity : AppCompatActivity() {
             // 5 saniye doldu mu?
             val elapsed = System.currentTimeMillis() - detectionStartTime
             if (elapsed >= DETECTION_WINDOW_MS && detectionResults.isNotEmpty()) {
-                // Voting ile final sonucu belirle
-                val finalResult = computeFinalResult(detectionResults)
+                // Dinlemeyi durdur (Debounce için)
+                stopListening()
                 
-                Log.d(TAG, "Final decision after ${detectionResults.size} samples: ${finalResult.predictedLabel}")
-                
-                withContext(Dispatchers.Main) {
-                    showResult(finalResult)
-                }
-                
-                // Arduino'ya gönder (Suspend - IO ve Main dışı)
-                try {
-                    arduinoSerial?.sendResult(finalResult.getLcdText())
-                } catch (e: Exception) {
-                    Log.e(TAG, "Arduino send error", e)
-                }
-                
-                // Sıfırla ve bekle
-                isCollectingDetections = false
-                detectionResults.clear()
-                
-                // 5 saniye bekle ve buffer'ı temizle
-                delay(5000)
-                audioCapture?.clearBuffer()
-                
-                withContext(Dispatchers.Main) {
-                    hideResult()
-                    updateStatus("Dinleniyor...", StatusColor.LISTENING)
+                // Sonuç işleme işlemlerini ayrı bir coroutine'de yap (Mevcut job iptal olduğu için)
+                lifecycleScope.launch {
+                    try {
+                        // Voting ile final sonucu belirle
+                        val finalResult = computeFinalResult(detectionResults)
+                        
+                        // İkinci en iyi tahmini bul (Öneri için)
+                        val secondBest = findSecondBest(detectionResults)
+                        
+                        Log.d(TAG, "Final decision: ${finalResult.predictedLabel}")
+                        
+                        // 1. Arduino'ya sonucu gönder
+                        withContext(Dispatchers.IO) {
+                            try {
+                                // Python formatı: "{Label} %{Conf} Guven"
+                                val conf = (finalResult.confidence * 100).toInt()
+                                arduinoSerial?.sendInfo(finalResult.predictedLabel, "%$conf Guven")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Arduino send error", e)
+                            }
+                        }
+                        
+                        withContext(Dispatchers.Main) {
+                            updateStatus("Ortam verileri okunuyor...", StatusColor.PROCESSING)
+                        }
+                        
+                        // 2. Sensör verisini oku (Arduino'dan)
+                        val sensorData = arduinoSerial?.readSensorData()
+                        
+                        // 3. Diyaloğu göster ve kullanıcı etkileşimini bekle
+                        withContext(Dispatchers.Main) {
+                            com.ciona.babycry.ui.FollowUpDialog(
+                                this@MainActivity,
+                                finalResult,
+                                sensorData,
+                                secondBest
+                            ) {
+                                // Diyalog kapandığında:
+                                // Tamponu temizle ve tekrar dinlemeye başla
+                                lifecycleScope.launch {
+                                    updateStatus("Yeniden başlatılıyor...", StatusColor.LISTENING)
+                                    delay(1000)
+                                    audioCapture?.clearBuffer()
+                                    isCollectingDetections = false
+                                    detectionResults.clear()
+                                    startListening()
+                                }
+                            }.show()
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Result processing error", e)
+                        // Hata durumunda kurtar
+                        updateStatus("İşlem hatası, yeniden başlatılıyor...", StatusColor.ERROR)
+                        delay(2000)
+                        startListening()
+                    }
                 }
             }
             
@@ -409,9 +439,23 @@ class MainActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 updateDebug("İşleme hatası: ${e.message?.take(30)}")
             }
+            // Hata durumunda dinlemeye devam etmeyi dene
+            if (!isListening) startListening()
         } finally {
             isProcessing = false
         }
+    }
+    
+    private fun findSecondBest(results: List<ClassificationResult>): String? {
+        val votes = mutableMapOf<String, Float>()
+        for (r in results) {
+            votes[r.predictedClass] = (votes[r.predictedClass] ?: 0f) + r.confidence
+        }
+        val sorted = votes.entries.sortedByDescending { it.value }
+        return if (sorted.size > 1) {
+            val label = sorted[1].key
+            CryClassifier.CLASS_LABELS_TR[label] ?: label
+        } else null
     }
     
     /**

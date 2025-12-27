@@ -2999,6 +2999,7 @@ drawable design_ic_visibility
 drawable design_ic_visibility_off
 drawable design_password_eye
 drawable design_snackbar_background
+drawable dialog_background
 drawable ic_arrow_back_black_24
 drawable ic_call_answer
 drawable ic_call_answer_low
@@ -3194,6 +3195,9 @@ id bounce
 id bounceBoth
 id bounceEnd
 id bounceStart
+id btnNo
+id btnOk
+id btnYes
 id buttonPanel
 id cache_measures
 id callMeasure
@@ -3330,6 +3334,8 @@ id jumpToEnd
 id jumpToStart
 id labeled
 id layout
+id layoutAdvice
+id layoutButtons
 id left
 id leftToRight
 id legacy
@@ -3549,10 +3555,14 @@ id tag_unhandled_key_listeners
 id tag_window_insets_animation_callback
 id text
 id text2
+id textAdvice
 id textEnd
+id textQuestion
+id textSensorInfo
 id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
+id textTitle
 id textTop
 id text_input_end_icon
 id text_input_error_icon
@@ -3734,6 +3744,7 @@ layout design_navigation_menu
 layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
+layout dialog_follow_up
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
 layout m3_alert_dialog
