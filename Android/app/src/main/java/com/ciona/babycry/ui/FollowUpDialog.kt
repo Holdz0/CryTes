@@ -86,13 +86,36 @@ class FollowUpDialog(
         binding.layoutAdvice.visibility = View.VISIBLE
         binding.textAdvice.text = getAdvice(result.predictedClass, isYes)
         
-        // Eğer aç ve Hayır dediyse, tutorial butonunu göster
+        // Eğer aç ve Hayır dediyse, hungry tutorial butonunu göster
         if (result.predictedClass == "hungry" && !isYes) {
             binding.btnTutorial.visibility = View.VISIBLE
+            binding.btnTutorial.text = "📖 Besleme Rehberini Gör"
             binding.btnTutorial.setOnClickListener {
-                // Tutorial dialog'u aç
                 HungryTutorialDialog(context) {
-                    // Tutorial tamamlandığında ana dialog'u kapat
+                    dismiss()
+                    onComplete()
+                }.show()
+            }
+        }
+        
+        // Eğer gaz/geğirme ve Hayır dediyse, burping tutorial butonunu göster
+        if (result.predictedClass == "burping" && !isYes) {
+            binding.btnTutorial.visibility = View.VISIBLE
+            binding.btnTutorial.text = "📖 Gaz Çıkarma Rehberini Gör"
+            binding.btnTutorial.setOnClickListener {
+                BurpingTutorialDialog(context) {
+                    dismiss()
+                    onComplete()
+                }.show()
+            }
+        }
+        
+        // Eğer yorgunluk ve Hayır dediyse, tired tutorial butonunu göster
+        if (result.predictedClass == "tired" && !isYes) {
+            binding.btnTutorial.visibility = View.VISIBLE
+            binding.btnTutorial.text = "📖 Uyku Rehberini Gör"
+            binding.btnTutorial.setOnClickListener {
+                TiredTutorialDialog(context) {
                     dismiss()
                     onComplete()
                 }.show()

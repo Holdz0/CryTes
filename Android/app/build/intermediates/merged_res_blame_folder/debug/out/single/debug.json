@@ -8,40 +8,24 @@
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_hungry_tutorial.xml"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_pulse_ring_outer.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\pulse_ring_outer.xml"
-    },
-    {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_status_badge_bg.xml.flat",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\status_badge_bg.xml"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_overlay_purple_circle.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\overlay_purple_circle.xml"
+        "merged": "com.ciona.babycry.app-merged_res-36:/layout_activity_main.xml.flat",
+        "source": "com.ciona.babycry.app-main-38:/layout/activity_main.xml"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry7.jpg.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry7.jpg"
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired6.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired6.jpg"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\layout_item_cry_history.xml.flat",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\item_cry_history.xml"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_button_primary.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\button_primary.xml"
-    },
-    {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry2.jpg.flat",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry2.jpg"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_dialog_background.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\dialog_background.xml"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_ic_launcher_foreground.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\ic_launcher_foreground.xml"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry6.jpg.flat",
@@ -60,12 +44,8 @@
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\glow_circle_orange.xml"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_slider_progress.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\slider_progress.xml"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry4.jpg.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry4.jpg"
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_burping2.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\burping2.jpg"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_glow_circle.xml.flat",
@@ -80,20 +60,12 @@
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\mic_circle.xml"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_circle_small.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\circle_small.xml"
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired2.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired2.jpg"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_card_background.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\card_background.xml"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_ic_menu.png.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\ic_menu.png"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\layout_dialog_follow_up.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_follow_up.xml"
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired9.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired9.jpg"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_glow_circle_red.xml.flat",
@@ -102,14 +74,6 @@
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry1.jpg.flat",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry1.jpg"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\layout_dialog_activities.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_activities.xml"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\mipmap-anydpi-v26\\ic_launcher.xml"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_pulse_ring_inner.xml.flat",
@@ -124,28 +88,16 @@
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\ic_microphone.png"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry3.jpg.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry3.jpg"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_ic_crying.png.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\ic_crying.png"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_progress_fill.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\progress_fill.xml"
-    },
-    {
-        "merged": "com.ciona.babycry.app-merged_res-36:/layout_dialog_follow_up.xml.flat",
-        "source": "com.ciona.babycry.app-main-38:/layout/dialog_follow_up.xml"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_activity_card_bg.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\activity_card_bg.xml"
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired10.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired10.jpg"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_overlay_orange_circle.xml.flat",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\overlay_orange_circle.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_burping1.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\burping1.jpg"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_gradient_background.xml.flat",
@@ -164,16 +116,132 @@
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\circle_indicator.xml"
     },
     {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
-    },
-    {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry5.jpg.flat",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry5.jpg"
     },
     {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired3.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired3.jpg"
+    },
+    {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_pulse_ring_middle.xml.flat",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\pulse_ring_middle.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired4.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired4.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_pulse_ring_outer.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\pulse_ring_outer.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_overlay_purple_circle.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\overlay_purple_circle.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry7.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry7.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_burping4.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\burping4.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_button_primary.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\button_primary.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_dialog_background.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\dialog_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired7.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired7.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry4.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry4.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_slider_progress.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\slider_progress.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_circle_small.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\circle_small.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_card_background.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\card_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_ic_menu.png.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\ic_menu.png"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\layout_dialog_follow_up.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_follow_up.xml"
+    },
+    {
+        "merged": "com.ciona.babycry.app-merged_res-36:/layout_dialog_guides.xml.flat",
+        "source": "com.ciona.babycry.app-main-38:/layout/dialog_guides.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\layout_dialog_activities.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_activities.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\layout_dialog_burping_tutorial.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_burping_tutorial.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired1.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired1.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired5.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired5.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_hungry3.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\hungry3.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_ic_crying.png.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\ic_crying.png"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_progress_fill.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\progress_fill.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_burping3.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\burping3.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\layout_dialog_tired_tutorial.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_tired_tutorial.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_tired8.jpg.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\tired8.jpg"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\drawable_activity_card_bg.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\drawable\\activity_card_bg.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-merged_res-36:\\xml_device_filter.xml.flat",

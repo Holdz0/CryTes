@@ -64,13 +64,13 @@ public final class ActivityMainBinding implements ViewBinding {
   public final ImageView micIcon;
 
   @NonNull
+  public final LinearLayout navGuides;
+
+  @NonNull
   public final LinearLayout navHistory;
 
   @NonNull
   public final LinearLayout navHome;
-
-  @NonNull
-  public final LinearLayout navProfile;
 
   @NonNull
   public final LinearLayout navigationDrawer;
@@ -120,8 +120,8 @@ public final class ActivityMainBinding implements ViewBinding {
       @NonNull LinearLayout bottomNavigation, @NonNull TextView debugText,
       @NonNull RecyclerView drawerHistoryRecyclerView, @NonNull DrawerLayout drawerLayout,
       @NonNull LinearLayout emptyHistoryContainer, @NonNull RecyclerView historyRecyclerView,
-      @NonNull ImageButton menuButton, @NonNull ImageView micIcon, @NonNull LinearLayout navHistory,
-      @NonNull LinearLayout navHome, @NonNull LinearLayout navProfile,
+      @NonNull ImageButton menuButton, @NonNull ImageView micIcon, @NonNull LinearLayout navGuides,
+      @NonNull LinearLayout navHistory, @NonNull LinearLayout navHome,
       @NonNull LinearLayout navigationDrawer, @NonNull View pulseRingInner,
       @NonNull View pulseRingMiddle, @NonNull View pulseRingOuter,
       @NonNull TextView sensitivityLabel, @NonNull View sensitivityProgress,
@@ -143,9 +143,9 @@ public final class ActivityMainBinding implements ViewBinding {
     this.historyRecyclerView = historyRecyclerView;
     this.menuButton = menuButton;
     this.micIcon = micIcon;
+    this.navGuides = navGuides;
     this.navHistory = navHistory;
     this.navHome = navHome;
-    this.navProfile = navProfile;
     this.navigationDrawer = navigationDrawer;
     this.pulseRingInner = pulseRingInner;
     this.pulseRingMiddle = pulseRingMiddle;
@@ -263,6 +263,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.navGuides;
+      LinearLayout navGuides = ViewBindings.findChildViewById(rootView, id);
+      if (navGuides == null) {
+        break missingId;
+      }
+
       id = R.id.navHistory;
       LinearLayout navHistory = ViewBindings.findChildViewById(rootView, id);
       if (navHistory == null) {
@@ -272,12 +278,6 @@ public final class ActivityMainBinding implements ViewBinding {
       id = R.id.navHome;
       LinearLayout navHome = ViewBindings.findChildViewById(rootView, id);
       if (navHome == null) {
-        break missingId;
-      }
-
-      id = R.id.navProfile;
-      LinearLayout navProfile = ViewBindings.findChildViewById(rootView, id);
-      if (navProfile == null) {
         break missingId;
       }
 
@@ -368,7 +368,7 @@ public final class ActivityMainBinding implements ViewBinding {
       return new ActivityMainBinding((DrawerLayout) rootView, actionButton, actionButtonText,
           arduinoIndicator, arduinoStatus, arduinoText, bottomNavigation, debugText,
           drawerHistoryRecyclerView, drawerLayout, emptyHistoryContainer, historyRecyclerView,
-          menuButton, micIcon, navHistory, navHome, navProfile, navigationDrawer, pulseRingInner,
+          menuButton, micIcon, navGuides, navHistory, navHome, navigationDrawer, pulseRingInner,
           pulseRingMiddle, pulseRingOuter, sensitivityLabel, sensitivityProgress, settingsButton,
           statusBadge, statusBadgeText, statusDot, statusSubtext, statusText, topHeader,
           viewAllButton);

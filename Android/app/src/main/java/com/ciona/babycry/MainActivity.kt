@@ -149,6 +149,11 @@ class MainActivity : AppCompatActivity() {
             binding.drawerLayout.openDrawer(GravityCompat.START)
         }
         
+        // Bottom nav - Guides opens guides dialog
+        binding.navGuides.setOnClickListener {
+            com.ciona.babycry.ui.GuidesDialog(this).show()
+        }
+        
         // Handle notification click intent
         handleNotificationIntent(intent)
     }
@@ -749,16 +754,20 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         
+                        // Ninni+Oyuncak'ı arka planda başlat (dialog'u bekleme)
                         if (finalResult.predictedClass in listOf("tired", "discomfort")) {
-                            Log.d(TAG, "Baby tired/uncomfortable - Starting lullaby...")
-                            withContext(Dispatchers.IO) {
-                                arduinoSerial?.sendInfo("Ninni Caliyor", "Dandini Dastana")
-                                arduinoSerial?.playLullaby()
+                            Log.d(TAG, "Baby tired/uncomfortable - Starting soothe mode in background...")
+                            // Arka planda çalıştır, dialog'u bloklamaz
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                arduinoSerial?.sendInfo("Ninni+Oyuncak", "Bebek sakinles")
+                                arduinoSerial?.playSoothe()
+                                // Ninni bitene kadar bekle
+                                delay(35000)
+                                Log.d(TAG, "Soothe mode finished")
                             }
-                            delay(30000)
-                            Log.d(TAG, "Lullaby finished")
                         }
                         
+                        // Dialog'u HEMEN göster (ninni beklemeden)
                         withContext(Dispatchers.Main) {
                             com.ciona.babycry.ui.FollowUpDialog(
                                 this@MainActivity,
