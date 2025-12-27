@@ -1,23 +1,35 @@
 [
     {
-        "merged": "com.ciona.babycry.app-mergeDebugResources-35:/layout/dialog_follow_up.xml",
-        "source": "com.ciona.babycry.app-main-38:/layout/dialog_follow_up.xml"
-    },
-    {
-        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\dialog_follow_up.xml",
-        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_follow_up.xml"
+        "merged": "com.ciona.babycry.app-mergeDebugResources-35:/layout/dialog_guides.xml",
+        "source": "com.ciona.babycry.app-main-38:/layout/dialog_guides.xml"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\dialog_activities.xml",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_activities.xml"
     },
     {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\dialog_follow_up.xml",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_follow_up.xml"
+    },
+    {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\activity_main.xml",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\activity_main.xml"
     },
     {
+        "merged": "com.ciona.babycry.app-mergeDebugResources-35:/layout/activity_main.xml",
+        "source": "com.ciona.babycry.app-main-38:/layout/activity_main.xml"
+    },
+    {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\item_cry_history.xml",
         "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\item_cry_history.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\dialog_burping_tutorial.xml",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_burping_tutorial.xml"
+    },
+    {
+        "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\dialog_tired_tutorial.xml",
+        "source": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-main-38:\\layout\\dialog_tired_tutorial.xml"
     },
     {
         "merged": "C:\\Users\\THEFE\\.gradle\\daemon\\8.2\\com.ciona.babycry.app-mergeDebugResources-35:\\layout\\dialog_hungry_tutorial.xml",

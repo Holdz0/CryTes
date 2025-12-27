@@ -353,6 +353,24 @@ class ArduinoSerial(private val context: Context) {
         return send("PLAY_LULLABY")
     }
     
+    /**
+     * Oyuncak servo motor komutu gönder
+     * Python: play_toy(arduino)
+     * Yorgunluk/rahatsızlık durumunda bebeği oyalamak için
+     */
+    suspend fun playToy(): Boolean {
+        return send("PLAY_TOY")
+    }
+    
+    /**
+     * Ninni + Oyuncak birlikte (Sakinleştirme modu)
+     * Python: arduino.write(b"PLAY_SOOTHE\n")
+     * tired/discomfort durumunda hem ninni hem oyuncak çalışır
+     */
+    suspend fun playSoothe(): Boolean {
+        return send("PLAY_SOOTHE")
+    }
+    
     fun disconnect() {
         try {
             serialPort?.close()

@@ -277,10 +277,10 @@ class CryDetectionService : Service() {
                     val conf = (finalResult.confidence * 100).toInt()
                     arduinoSerial?.sendInfo(finalResult.predictedLabel, "$conf Guven")
                     
-                    // Play lullaby for tired/discomfort
+                    // Play soothe mode for tired/discomfort (Python: PLAY_SOOTHE)
                     if (finalResult.predictedClass in listOf("tired", "discomfort")) {
-                        arduinoSerial?.sendInfo("Ninni Caliyor", "Dandini Dastana")
-                        arduinoSerial?.playLullaby()
+                        arduinoSerial?.sendInfo("Ninni+Oyuncak", "Bebek sakinles")
+                        arduinoSerial?.playSoothe()
                     }
                 }
                 
