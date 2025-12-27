@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.content.pm.PackageManager
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -26,7 +27,10 @@ import com.ciona.babycry.ml.ClassificationResult
 import com.ciona.babycry.ml.CryClassifier
 import com.ciona.babycry.ml.YamnetProcessor
 import com.ciona.babycry.model.CryHistory
+import com.ciona.babycry.model.HistoryManager
 import com.ciona.babycry.serial.ArduinoSerial
+import com.ciona.babycry.service.CryDetectionService
+import com.ciona.babycry.service.NotificationHelper
 import com.ciona.babycry.ui.CryHistoryAdapter
 import android.hardware.usb.UsbManager
 import android.content.BroadcastReceiver
@@ -46,6 +50,8 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "MainActivity"
         private const val DETECTION_WINDOW_MS = 5000L
         private const val SERIAL_SEND_INTERVAL = 1000L
+        private const val PREFS_NAME = "crytes_prefs"
+        private const val PREF_LISTENING_ENABLED = "listening_enabled"
     }
     
     private lateinit var binding: ActivityMainBinding
@@ -82,16 +88,28 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
+            // MainActivity açıkken kendi tespitini yapacak, service başlatmıyoruz
             startListening()
         } else {
             updateStatus("Microphone permission required", "Please grant permission to use the app.")
         }
     }
     
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        // Bildirim izni verilse de verilmese de devam et
+        // Service başlatmıyoruz - sadece arka plandayken çalışacak
+        checkPermissionAndStart()
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        // Create notification channels
+        NotificationHelper.createChannels(this)
         
         setupUI()
         setupDrawer()
@@ -130,6 +148,75 @@ class MainActivity : AppCompatActivity() {
         binding.navHistory.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.START)
         }
+        
+        // Handle notification click intent
+        handleNotificationIntent(intent)
+    }
+    
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        handleNotificationIntent(intent)
+    }
+    
+    /**
+     * Handle notification deep link - show FollowUpDialog directly
+     */
+    private fun handleNotificationIntent(intent: Intent?) {
+        val cryType = intent?.getStringExtra("CRY_TYPE") ?: return
+        val cryLabel = intent.getStringExtra("CRY_LABEL") ?: return
+        val cryEmoji = intent.getStringExtra("CRY_EMOJI") ?: "❓"
+        val cryConfidence = intent.getFloatExtra("CRY_CONFIDENCE", 0.5f)
+        val secondBest = intent.getStringExtra("CRY_SECOND_BEST")
+        
+        Log.d(TAG, "Notification click: $cryType, secondBest: $secondBest")
+        
+        // Create result from intent
+        val result = ClassificationResult(
+            predictedClass = cryType,
+            predictedLabel = cryLabel,
+            emoji = cryEmoji,
+            confidence = cryConfidence,
+            isConfident = cryConfidence >= CryClassifier.CONFIDENCE_THRESHOLD,
+            allProbabilities = emptyMap()
+        )
+        
+        // Add to history
+        addToHistory(result)
+        
+        // Show FollowUpDialog directly with secondBest
+        lifecycleScope.launch {
+            delay(500) // Small delay to ensure activity is ready
+            val displayConfidence = NotificationHelper.adjustConfidenceForDisplay(result.confidence)
+            updateStatus("${result.emoji} ${result.predictedLabel}", "%$displayConfidence güvenle tespit edildi")
+            
+            com.ciona.babycry.ui.FollowUpDialog(
+                this@MainActivity,
+                result,
+                null,
+                secondBest
+            ) {
+                // On complete - continue listening
+                lifecycleScope.launch {
+                    updateStatus("Dinleniyor...", "Arka planda dinleme aktif.\nOrtam sessiz.")
+                }
+            }.show()
+        }
+        
+        // Clear the intent extras to avoid re-processing
+        intent?.removeExtra("CRY_TYPE")
+    }
+    
+    /**
+     * Start background detection service
+     */
+    private fun startBackgroundService() {
+        val serviceIntent = Intent(this, CryDetectionService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+        Log.d(TAG, "Background service started")
     }
     
     private fun setupUI() {
@@ -164,7 +251,21 @@ class MainActivity : AppCompatActivity() {
             adapter = drawerHistoryAdapter
         }
         
+        // Load saved history
+        loadSavedHistory()
+        
         updateHistoryVisibility()
+    }
+    
+    /**
+     * Load history from persistent storage
+     */
+    private fun loadSavedHistory() {
+        val savedHistory = HistoryManager.loadHistory(this)
+        if (savedHistory.isNotEmpty()) {
+            historyAdapter.setHistoryList(savedHistory)
+            drawerHistoryAdapter.setHistoryList(savedHistory)
+        }
     }
     
     private fun updateHistoryVisibility() {
@@ -186,6 +287,10 @@ class MainActivity : AppCompatActivity() {
         )
         historyAdapter.addHistory(history)
         drawerHistoryAdapter.addHistory(history)
+        
+        // Save to persistent storage
+        HistoryManager.saveHistory(this, historyAdapter.getHistoryList())
+        
         updateHistoryVisibility()
     }
     
@@ -243,31 +348,63 @@ class MainActivity : AppCompatActivity() {
         if (isPaused) {
             // Resume
             isPaused = false
-            binding.actionButtonText.text = "Pause Monitoring"
+            binding.actionButtonText.text = "Dinlemeyi Durdur"
+            saveListeningState(true)
+            // Service başlatma - MainActivity kendi tespitini yapacak
+            // Service sadece uygulama arka plandayken çalışacak (onPause'da başlatılır)
             startListening()
         } else {
             // Pause
             isPaused = true
-            binding.actionButtonText.text = "Resume Monitoring"
+            binding.actionButtonText.text = "Dinlemeye Devam Et"
+            saveListeningState(false)
+            stopBackgroundService()
             stopListening()
-            updateStatus("Paused", "Monitoring is paused.\nTap Resume to continue.")
+            updateStatus("Duraklatıldı", "Dinleme duraklatıldı.\nDevam etmek için Devam'a tıklayın.")
         }
     }
     
+    /**
+     * Save listening state to SharedPreferences
+     */
+    private fun saveListeningState(enabled: Boolean) {
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_LISTENING_ENABLED, enabled)
+            .apply()
+    }
+    
+    /**
+     * Load listening state from SharedPreferences
+     */
+    private fun loadListeningState(): Boolean {
+        return getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(PREF_LISTENING_ENABLED, true) // Default: enabled
+    }
+    
+    /**
+     * Stop background detection service
+     */
+    private fun stopBackgroundService() {
+        val serviceIntent = Intent(this, CryDetectionService::class.java)
+        stopService(serviceIntent)
+        Log.d(TAG, "Background service stopped")
+    }
+    
     private fun reconnectArduino() {
-        updateStatus("Connecting...", "Searching for Arduino...")
+        updateStatus("Bağlanıyor...", "Arduino aranıyor...")
         lifecycleScope.launch(Dispatchers.IO) {
             arduinoSerial?.disconnect()
             delay(500)
             val connected = arduinoSerial?.scanAndConnect() == true
             withContext(Dispatchers.Main) {
                 if (connected) {
-                    Toast.makeText(this@MainActivity, "Arduino Connected", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Arduino Bağlandı", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this@MainActivity, "Arduino Not Found", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Arduino Bulunamadı", Toast.LENGTH_SHORT).show()
                 }
                 if (!isPaused) {
-                    updateStatus("Listening...", "Monitoring active in background.\nEnvironment is quiet.")
+                    updateStatus("Dinleniyor...", "Arka planda dinleme aktif.\nOrtam sessiz.")
                 }
             }
         }
@@ -275,6 +412,11 @@ class MainActivity : AppCompatActivity() {
     
     override fun onResume() {
         super.onResume()
+        
+        // MainActivity açıkken Service'i durdur - çift tespit olmasın
+        stopBackgroundService()
+        
+        // Arduino bağlantı kontrolü
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 arduinoSerial?.scanAndConnect()
@@ -282,12 +424,22 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Arduino scan error", e)
             }
         }
+        
+        // Eğer duraklatılmamışsa dinlemeye başla
+        if (!isPaused) {
+            startListening()
+        }
     }
     
     override fun onPause() {
         super.onPause()
         stopListening()
         stopPulseAnimation()
+        
+        // Uygulama arka plana gidince Service'i başlat (eğer duraklatılmamışsa)
+        if (!isPaused) {
+            startBackgroundService()
+        }
     }
     
     override fun onDestroy() {
@@ -305,7 +457,7 @@ class MainActivity : AppCompatActivity() {
             when (intent.action) {
                 UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
                     Log.d(TAG, "USB Device Attached")
-                    Toast.makeText(context, "USB Device Detected", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "USB Cihazı Algılandı", Toast.LENGTH_SHORT).show()
                     stopListening()
                     lifecycleScope.launch(Dispatchers.IO) {
                         delay(1000)
@@ -317,7 +469,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     Log.d(TAG, "USB Device Detached")
-                    Toast.makeText(context, "USB Device Removed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "USB Cihazı Kaldırıldı", Toast.LENGTH_SHORT).show()
                     arduinoSerial?.disconnect()
                 }
             }
@@ -345,7 +497,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun initializeModules() {
-        updateStatus("Loading...", "Initializing models...")
+        updateStatus("Yükleniyor...", "Modeller başlatılıyor...")
         
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -363,7 +515,7 @@ class MainActivity : AppCompatActivity() {
                 
                 withContext(Dispatchers.Main) {
                     observeArduinoConnection()
-                    updateStatus("Ready", "Models loaded successfully.")
+                    updateStatus("Hazır", "Modeller başarıyla yüklendi.")
                     checkPermissionAndStart()
                 }
                 
@@ -377,10 +529,33 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun checkPermissionAndStart() {
+        // First check notification permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+        
+        // Check if listening was previously disabled by user
+        val wasListeningEnabled = loadListeningState()
+        if (!wasListeningEnabled) {
+            isPaused = true
+            binding.actionButtonText.text = "Dinlemeye Devam Et"
+            updateStatus("Duraklatıldı", "Dinleme duraklatıldı.\nDevam etmek için Devam'a tıklayın.")
+            return
+        }
+        
+        // Then check audio permission
         when {
             ContextCompat.checkSelfPermission(
                 this, Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
+                // Service başlatma - MainActivity açıkken kendi tespitini yapacak
+                // Service sadece uygulama arka plandayken çalışacak (onPause'da başlatılır)
                 startListening()
             }
             else -> {
@@ -400,15 +575,15 @@ class MainActivity : AppCompatActivity() {
         }
         
         isListening = true
-        updateStatus("Listening...", "Monitoring active in background.\nEnvironment is quiet.")
+        updateStatus("Dinleniyor...", "Arka planda dinleme aktif.\nOrtam sessiz.")
         startPulseAnimation()
         
         // Update status badge
-        binding.statusBadgeText.text = "LIVE FEED"
+        binding.statusBadgeText.text = "CANLI"
         binding.statusDot.setBackgroundResource(R.drawable.circle_small)
         
         lifecycleScope.launch(Dispatchers.IO) {
-            arduinoSerial?.sendInfo("Listening...", "Waiting for baby")
+            arduinoSerial?.sendInfo("Dinleniyor...", "Bebek bekleniyor")
             arduinoSerial?.setTrafficLight(ArduinoSerial.TrafficLightState.GREEN)
         }
         
@@ -451,7 +626,7 @@ class MainActivity : AppCompatActivity() {
         audioCapture?.stop()
         stopPulseAnimation()
         
-        binding.statusBadgeText.text = "PAUSED"
+        binding.statusBadgeText.text = "DURDURULDU"
     }
     
     private suspend fun processAudio(samples: FloatArray, rms: Float) {
@@ -479,7 +654,7 @@ class MainActivity : AppCompatActivity() {
                     if (elapsed > 2000 && detectionResults.isEmpty()) {
                         isCollectingDetections = false
                         withContext(Dispatchers.Main) {
-                            updateStatus("Listening...", "Monitoring active in background.\nEnvironment is quiet.")
+                            updateStatus("Dinleniyor...", "Arka planda dinleme aktif.\nOrtam sessiz.")
                             startPulseAnimation()
                         }
                     }
@@ -522,9 +697,9 @@ class MainActivity : AppCompatActivity() {
                 detectionResults.clear()
                 
                 withContext(Dispatchers.Main) {
-                    updateStatus("Analyzing...", "Baby cry detected!\nAnalyzing the cause...")
+                    updateStatus("Analiz ediliyor...", "Bebek ağlaması tespit edildi!\nSebep analiz ediliyor...")
                     stopPulseAnimation()
-                    binding.statusBadgeText.text = "DETECTING"
+                    binding.statusBadgeText.text = "TESPİT"
                 }
             }
             
@@ -532,7 +707,7 @@ class MainActivity : AppCompatActivity() {
             
             val elapsedSeconds = (System.currentTimeMillis() - detectionStartTime) / 1000
             withContext(Dispatchers.Main) {
-                updateStatus("Analyzing...", "Processing... (${elapsedSeconds}s / 5s)")
+                updateStatus("Analiz ediliyor...", "İşleniyor... (${elapsedSeconds}sn / 5sn)")
             }
             
             val elapsed = System.currentTimeMillis() - detectionStartTime

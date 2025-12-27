@@ -3033,6 +3033,13 @@ drawable glow_circle
 drawable glow_circle_orange
 drawable glow_circle_red
 drawable gradient_background
+drawable hungry1
+drawable hungry2
+drawable hungry3
+drawable hungry4
+drawable hungry5
+drawable hungry6
+drawable hungry7
 drawable ic_arrow_back_black_24
 drawable ic_call_answer
 drawable ic_call_answer_low
@@ -3250,8 +3257,11 @@ id bounceStart
 id btnClose
 id btnLights
 id btnLullaby
+id btnNext
 id btnNo
 id btnOk
+id btnPrevious
+id btnTutorial
 id btnYes
 id buttonPanel
 id cache_measures
@@ -3386,6 +3396,7 @@ id ifRoom
 id ignore
 id ignoreRequest
 id image
+id imageTutorial
 id immediateStop
 id included
 id indeterminate
@@ -3630,12 +3641,14 @@ id text
 id text2
 id textAdvice
 id textAdviceLabel
+id textDescription
 id textEnd
 id textQuestion
 id textSensorInfo
 id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
+id textStepIndicator
 id textTitle
 id textTop
 id text_input_end_icon
@@ -3823,6 +3836,7 @@ layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout dialog_activities
 layout dialog_follow_up
+layout dialog_hungry_tutorial
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
 layout item_cry_history

@@ -43,19 +43,20 @@ class CryHistoryAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = historyList[position]
         
-        // Set title with emoji
-        holder.title.text = "${item.emoji} ${item.cryLabel} Detected"
+        // Set title with emoji (Turkish)
+        holder.title.text = "${item.emoji} ${item.cryLabel} Tespit Edildi"
         
-        // Set subtitle based on confidence
+        // Set subtitle based on confidence (Turkish) - adjusted for display
+        val displayConfidence = com.ciona.babycry.service.NotificationHelper.adjustConfidenceForDisplay(item.confidence)
         val intensity = when {
-            item.confidence >= 0.8f -> "High"
-            item.confidence >= 0.5f -> "Medium"
-            else -> "Low"
+            displayConfidence >= 80 -> "Yüksek"
+            displayConfidence >= 50 -> "Orta"
+            else -> "Düşük"
         }
-        holder.subtitle.text = "$intensity intensity duration"
+        holder.subtitle.text = "%$displayConfidence güven - $intensity seviye"
         
-        // Set relative time
-        holder.time.text = getRelativeTime(item.timestamp)
+        // Set Turkish date/time
+        holder.time.text = item.formattedDateTime
         
         // Set background color based on type
         val bgDrawable = typeColors[item.cryType] ?: R.drawable.overlay_orange_circle
@@ -88,11 +89,11 @@ class CryHistoryAdapter(
         val days = diff / (1000 * 60 * 60 * 24)
         
         return when {
-            minutes < 1 -> "now"
-            minutes < 60 -> "${minutes}m ago"
-            hours < 24 -> "${hours}h ago"
-            days < 7 -> "${days}d ago"
-            else -> "${days / 7}w ago"
+            minutes < 1 -> "şimdi"
+            minutes < 60 -> "${minutes} dk önce"
+            hours < 24 -> "${hours} sa önce"
+            days < 7 -> "${days} gün önce"
+            else -> "${days / 7} hafta önce"
         }
     }
 }

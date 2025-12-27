@@ -85,6 +85,19 @@ class FollowUpDialog(
         // Öneri kısmını göster
         binding.layoutAdvice.visibility = View.VISIBLE
         binding.textAdvice.text = getAdvice(result.predictedClass, isYes)
+        
+        // Eğer aç ve Hayır dediyse, tutorial butonunu göster
+        if (result.predictedClass == "hungry" && !isYes) {
+            binding.btnTutorial.visibility = View.VISIBLE
+            binding.btnTutorial.setOnClickListener {
+                // Tutorial dialog'u aç
+                HungryTutorialDialog(context) {
+                    // Tutorial tamamlandığında ana dialog'u kapat
+                    dismiss()
+                    onComplete()
+                }.show()
+            }
+        }
     }
 
     private fun getAdvice(label: String, isYes: Boolean): String {

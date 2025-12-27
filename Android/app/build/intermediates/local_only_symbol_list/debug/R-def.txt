@@ -52,6 +52,13 @@ drawable glow_circle
 drawable glow_circle_orange
 drawable glow_circle_red
 drawable gradient_background
+drawable hungry1
+drawable hungry2
+drawable hungry3
+drawable hungry4
+drawable hungry5
+drawable hungry6
+drawable hungry7
 drawable ic_crying
 drawable ic_launcher_foreground
 drawable ic_menu
@@ -78,8 +85,11 @@ id bottomNavigation
 id btnClose
 id btnLights
 id btnLullaby
+id btnNext
 id btnNo
 id btnOk
+id btnPrevious
+id btnTutorial
 id btnYes
 id debugText
 id dialogEmoji
@@ -92,6 +102,7 @@ id historySubtitle
 id historyTime
 id historyTitle
 id iconContainer
+id imageTutorial
 id layoutAdvice
 id layoutButtons
 id menuButton
@@ -113,8 +124,10 @@ id statusSubtext
 id statusText
 id textAdvice
 id textAdviceLabel
+id textDescription
 id textQuestion
 id textSensorInfo
+id textStepIndicator
 id textTitle
 id topHeader
 id txtLightsTimer
@@ -123,6 +136,7 @@ id viewAllButton
 layout activity_main
 layout dialog_activities
 layout dialog_follow_up
+layout dialog_hungry_tutorial
 layout item_cry_history
 mipmap ic_launcher
 mipmap ic_launcher_round

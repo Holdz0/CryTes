@@ -46,7 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="Baby Cry Analyzer"
+                    android:text="Bebek Ağlama Analizi"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -87,7 +87,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:paddingTop="24dp"
+                        android:paddingTop="48dp"
                         android:paddingBottom="16dp">
 
                         <!-- Pulse Visualizer Container -->
@@ -163,7 +163,7 @@
                                     android:id="@+id/statusBadgeText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="LIVE FEED"
+                                    android:text="CANLI"
                                     android:textSize="9sp"
                                     android:textStyle="bold"
                                     android:textColor="#CCFFFFFF"
@@ -180,7 +180,7 @@
                             android:id="@+id/statusText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Listening..."
+                            android:text="Dinleniyor..."
                             android:textSize="28sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
@@ -190,7 +190,7 @@
                             android:id="@+id/statusSubtext"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Monitoring active in background.\nEnvironment is quiet."
+                            android:text="Arka planda dinleme aktif.\nOrtam sessiz."
                             android:textSize="13sp"
                             android:textColor="@color/text_secondary"
                             android:gravity="center"
@@ -206,7 +206,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="16dp">
+                        android:paddingTop="32dp"
+                        android:paddingBottom="16dp">
 
                         <LinearLayout
                             android:id="@+id/actionButton"
@@ -239,7 +240,7 @@
                                 android:id="@+id/actionButtonText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Pause Monitoring"
+                                android:text="Dinlemeyi Durdur"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/text_primary"
@@ -268,7 +269,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Microphone Sensitivity"
+                                android:text="Mikrofon Hassasiyeti"
                                 android:textSize="13sp"
                                 android:textColor="@color/text_secondary"/>
 
@@ -276,7 +277,7 @@
                                 android:id="@+id/sensitivityLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="High"
+                                android:text="Yüksek"
                                 android:textSize="13sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary"/>
@@ -324,7 +325,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Recent Activity"
+                                android:text="Son Aktiviteler"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/text_primary"/>
@@ -333,7 +334,7 @@
                                 android:id="@+id/viewAllButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="View All"
+                                android:text="Tümünü Gör"
                                 android:textSize="13sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary"
@@ -370,7 +371,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="No activity yet"
+                                android:text="Henüz aktivite yok"
                                 android:textSize="14sp"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginTop="6dp"/>
@@ -425,7 +426,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Home"
+                        android:text="Ana Sayfa"
                         android:textSize="9sp"
                         android:textStyle="bold"
                         android:textColor="@color/primary"
@@ -452,7 +453,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="History"
+                        android:text="Geçmiş"
                         android:textSize="9sp"
                         android:textColor="@color/text_disabled"
                         android:layout_marginTop="2dp"/>
@@ -478,7 +479,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Profile"
+                        android:text="Profil"
                         android:textSize="9sp"
                         android:textColor="@color/text_disabled"
                         android:layout_marginTop="2dp"/>
@@ -545,7 +546,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📋 Cry History"
+                android:text="📋 Ağlama Geçmişi"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/primary"/>
@@ -553,7 +554,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="All detection records"
+                android:text="Tüm tespit kayıtları"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="3dp"/>

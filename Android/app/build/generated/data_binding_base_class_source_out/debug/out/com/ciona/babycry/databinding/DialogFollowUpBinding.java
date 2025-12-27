@@ -27,6 +27,9 @@ public final class DialogFollowUpBinding implements ViewBinding {
   public final Button btnOk;
 
   @NonNull
+  public final Button btnTutorial;
+
+  @NonNull
   public final Button btnYes;
 
   @NonNull
@@ -54,14 +57,15 @@ public final class DialogFollowUpBinding implements ViewBinding {
   public final TextView textTitle;
 
   private DialogFollowUpBinding(@NonNull LinearLayout rootView, @NonNull Button btnNo,
-      @NonNull Button btnOk, @NonNull Button btnYes, @NonNull TextView dialogEmoji,
-      @NonNull LinearLayout layoutAdvice, @NonNull LinearLayout layoutButtons,
-      @NonNull TextView textAdvice, @NonNull TextView textAdviceLabel,
-      @NonNull TextView textQuestion, @NonNull TextView textSensorInfo,
-      @NonNull TextView textTitle) {
+      @NonNull Button btnOk, @NonNull Button btnTutorial, @NonNull Button btnYes,
+      @NonNull TextView dialogEmoji, @NonNull LinearLayout layoutAdvice,
+      @NonNull LinearLayout layoutButtons, @NonNull TextView textAdvice,
+      @NonNull TextView textAdviceLabel, @NonNull TextView textQuestion,
+      @NonNull TextView textSensorInfo, @NonNull TextView textTitle) {
     this.rootView = rootView;
     this.btnNo = btnNo;
     this.btnOk = btnOk;
+    this.btnTutorial = btnTutorial;
     this.btnYes = btnYes;
     this.dialogEmoji = dialogEmoji;
     this.layoutAdvice = layoutAdvice;
@@ -109,6 +113,12 @@ public final class DialogFollowUpBinding implements ViewBinding {
       id = R.id.btnOk;
       Button btnOk = ViewBindings.findChildViewById(rootView, id);
       if (btnOk == null) {
+        break missingId;
+      }
+
+      id = R.id.btnTutorial;
+      Button btnTutorial = ViewBindings.findChildViewById(rootView, id);
+      if (btnTutorial == null) {
         break missingId;
       }
 
@@ -166,9 +176,9 @@ public final class DialogFollowUpBinding implements ViewBinding {
         break missingId;
       }
 
-      return new DialogFollowUpBinding((LinearLayout) rootView, btnNo, btnOk, btnYes, dialogEmoji,
-          layoutAdvice, layoutButtons, textAdvice, textAdviceLabel, textQuestion, textSensorInfo,
-          textTitle);
+      return new DialogFollowUpBinding((LinearLayout) rootView, btnNo, btnOk, btnTutorial, btnYes,
+          dialogEmoji, layoutAdvice, layoutButtons, textAdvice, textAdviceLabel, textQuestion,
+          textSensorInfo, textTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

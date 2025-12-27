@@ -127,10 +127,23 @@
             android:layout_height="wrap_content"
             android:text="Öneri metni buraya gelecek."
             android:textSize="15sp"
-            android:textColor="@color/text_secondary"
+            android:textColor="@android:color/white"
             android:gravity="center"
             android:lineSpacingExtra="4dp"
             android:layout_marginBottom="20dp"/>
+
+        <!-- Tutorial Button (only for hungry) -->
+        <Button
+            android:id="@+id/btnTutorial"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="📖 Besleme Rehberini Gör"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_secondary"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/btnOk"
