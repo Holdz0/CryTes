@@ -1,25 +1,33 @@
 package com.ciona.babycry
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.content.pm.PackageManager
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.ciona.babycry.audio.AudioCapture
 import com.ciona.babycry.audio.AudioEvent
 import com.ciona.babycry.databinding.ActivityMainBinding
 import com.ciona.babycry.ml.ClassificationResult
 import com.ciona.babycry.ml.CryClassifier
 import com.ciona.babycry.ml.YamnetProcessor
+import com.ciona.babycry.model.CryHistory
 import com.ciona.babycry.serial.ArduinoSerial
+import com.ciona.babycry.ui.CryHistoryAdapter
 import android.hardware.usb.UsbManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -30,47 +38,53 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 
 /**
- * MainActivity - Crytes Ana Ekranı
+ * MainActivity - Baby Cry Analyzer
  */
 class MainActivity : AppCompatActivity() {
     
     companion object {
         private const val TAG = "MainActivity"
         private const val DETECTION_WINDOW_MS = 5000L
-        private const val SERIAL_SEND_INTERVAL = 1000L // 1 saniyede bir güncelle
+        private const val SERIAL_SEND_INTERVAL = 1000L
     }
     
     private lateinit var binding: ActivityMainBinding
     
-    // Modüller
+    // Animation
+    private var pulseAnimator: ObjectAnimator? = null
+    private var ringAnimator1: ObjectAnimator? = null
+    private var ringAnimator2: ObjectAnimator? = null
+    private var ringAnimator3: ObjectAnimator? = null
+    
+    // Adapters
+    private lateinit var historyAdapter: CryHistoryAdapter
+    private lateinit var drawerHistoryAdapter: CryHistoryAdapter
+    
+    // Modules
     private var audioCapture: AudioCapture? = null
     private var yamnetProcessor: YamnetProcessor? = null
     private var cryClassifier: CryClassifier? = null
     private var arduinoSerial: ArduinoSerial? = null
     
-    // Durum
+    // State
     private var isListening = false
+    private var isPaused = false
     private var processingJob: Job? = null
     private var isProcessing = false
     
-    // Debouncing için tespit toplama
+    // Detection
     private val detectionResults = mutableListOf<ClassificationResult>()
     private var detectionStartTime: Long = 0
     private var isCollectingDetections = false
-
-    
-    // Serial haberleşme hızı kontrolü
     private var lastSerialSendTime = 0L
-
     
-    // İzin launcher
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
             startListening()
         } else {
-            updateStatus("Mikrofon izni gerekli", StatusColor.ERROR)
+            updateStatus("Microphone permission required", "Please grant permission to use the app.")
         }
     }
     
@@ -79,26 +93,181 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        // Modülleri başlat
-        initializeModules()
+        setupUI()
+        setupDrawer()
+        setupHistoryRecyclerViews()
+        setupPulseAnimation()
+        setupSensitivitySlider()
         
-        // Runtime USB tak-çıkar dinleyicisi
+        initializeModules()
         registerUsbReceiver()
         
-        // Manuel bağlanma butonu
+        // Arduino reconnect
         binding.arduinoStatus.setOnClickListener {
-            updateStatus("Arduino aranıyor...", StatusColor.PROCESSING)
-            lifecycleScope.launch(Dispatchers.IO) {
-                arduinoSerial?.disconnect() // Önce temizle
-                delay(500)
-                val connected = arduinoSerial?.scanAndConnect() == true
-                withContext(Dispatchers.Main) {
-                    if (connected) {
-                        Toast.makeText(this@MainActivity, "Arduino Bağlandı", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@MainActivity, "Arduino Bulunamadı", Toast.LENGTH_SHORT).show()
-                        updateStatus("Dinleniyor...", StatusColor.LISTENING)
-                    }
+            reconnectArduino()
+        }
+        
+        // Settings button - opens activities dialog
+        binding.settingsButton.setOnClickListener {
+            com.ciona.babycry.ui.ActivitiesDialog(
+                this,
+                arduinoSerial,
+                lifecycleScope
+            ).show()
+        }
+        
+        // Action button (Pause/Resume)
+        binding.actionButton.setOnClickListener {
+            togglePause()
+        }
+        
+        // View All button opens drawer
+        binding.viewAllButton.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+        
+        // Bottom nav - History opens drawer
+        binding.navHistory.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+    }
+    
+    private fun setupUI() {
+        // Set initial sensitivity progress (75%)
+        binding.sensitivityProgress.post {
+            val params = binding.sensitivityProgress.layoutParams
+            params.width = (binding.sensitivityProgress.parent as View).width * 75 / 100
+            binding.sensitivityProgress.layoutParams = params
+        }
+    }
+    
+    private fun setupDrawer() {
+        binding.menuButton.setOnClickListener {
+            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                binding.drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
+    }
+    
+    private fun setupHistoryRecyclerViews() {
+        historyAdapter = CryHistoryAdapter()
+        binding.historyRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = historyAdapter
+        }
+        
+        drawerHistoryAdapter = CryHistoryAdapter()
+        binding.drawerHistoryRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = drawerHistoryAdapter
+        }
+        
+        updateHistoryVisibility()
+    }
+    
+    private fun updateHistoryVisibility() {
+        if (historyAdapter.isEmpty()) {
+            binding.historyRecyclerView.visibility = View.GONE
+            binding.emptyHistoryContainer.visibility = View.VISIBLE
+        } else {
+            binding.historyRecyclerView.visibility = View.VISIBLE
+            binding.emptyHistoryContainer.visibility = View.GONE
+        }
+    }
+    
+    private fun addToHistory(result: ClassificationResult) {
+        val history = CryHistory(
+            cryType = result.predictedClass,
+            cryLabel = result.predictedLabel,
+            emoji = result.emoji,
+            confidence = result.confidence
+        )
+        historyAdapter.addHistory(history)
+        drawerHistoryAdapter.addHistory(history)
+        updateHistoryVisibility()
+    }
+    
+    private fun setupPulseAnimation() {
+        // Pulse animation for rings
+        val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 0.95f, 1.05f, 0.95f)
+        val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.95f, 1.05f, 0.95f)
+        val alpha = PropertyValuesHolder.ofFloat(View.ALPHA, 0.7f, 1f, 0.7f)
+        
+        ringAnimator1 = ObjectAnimator.ofPropertyValuesHolder(binding.pulseRingOuter, scaleX, scaleY, alpha).apply {
+            duration = 2000
+            repeatCount = ObjectAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        
+        ringAnimator2 = ObjectAnimator.ofPropertyValuesHolder(binding.pulseRingMiddle, scaleX, scaleY, alpha).apply {
+            duration = 1800
+            repeatCount = ObjectAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+            startDelay = 200
+        }
+        
+        ringAnimator3 = ObjectAnimator.ofPropertyValuesHolder(binding.pulseRingInner, scaleX, scaleY, alpha).apply {
+            duration = 1600
+            repeatCount = ObjectAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+            startDelay = 400
+        }
+    }
+    
+    private fun startPulseAnimation() {
+        ringAnimator1?.start()
+        ringAnimator2?.start()
+        ringAnimator3?.start()
+    }
+    
+    private fun stopPulseAnimation() {
+        ringAnimator1?.cancel()
+        ringAnimator2?.cancel()
+        ringAnimator3?.cancel()
+        
+        binding.pulseRingOuter.scaleX = 1f
+        binding.pulseRingOuter.scaleY = 1f
+        binding.pulseRingMiddle.scaleX = 1f
+        binding.pulseRingMiddle.scaleY = 1f
+        binding.pulseRingInner.scaleX = 1f
+        binding.pulseRingInner.scaleY = 1f
+    }
+    
+    private fun setupSensitivitySlider() {
+        // Static for now, can be made interactive later
+    }
+    
+    private fun togglePause() {
+        if (isPaused) {
+            // Resume
+            isPaused = false
+            binding.actionButtonText.text = "Pause Monitoring"
+            startListening()
+        } else {
+            // Pause
+            isPaused = true
+            binding.actionButtonText.text = "Resume Monitoring"
+            stopListening()
+            updateStatus("Paused", "Monitoring is paused.\nTap Resume to continue.")
+        }
+    }
+    
+    private fun reconnectArduino() {
+        updateStatus("Connecting...", "Searching for Arduino...")
+        lifecycleScope.launch(Dispatchers.IO) {
+            arduinoSerial?.disconnect()
+            delay(500)
+            val connected = arduinoSerial?.scanAndConnect() == true
+            withContext(Dispatchers.Main) {
+                if (connected) {
+                    Toast.makeText(this@MainActivity, "Arduino Connected", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@MainActivity, "Arduino Not Found", Toast.LENGTH_SHORT).show()
+                }
+                if (!isPaused) {
+                    updateStatus("Listening...", "Monitoring active in background.\nEnvironment is quiet.")
                 }
             }
         }
@@ -106,7 +275,6 @@ class MainActivity : AppCompatActivity() {
     
     override fun onResume() {
         super.onResume()
-        // Arduino bağlantısını kontrol et (Background)
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 arduinoSerial?.scanAndConnect()
@@ -119,36 +287,37 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         stopListening()
+        stopPulseAnimation()
     }
     
     override fun onDestroy() {
         super.onDestroy()
+        ringAnimator1?.cancel()
+        ringAnimator2?.cancel()
+        ringAnimator3?.cancel()
         unregisterUsbReceiver()
         releaseModules()
     }
     
-    // --- USB Receiver ---
+    // USB Receiver
     private val usbReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
                     Log.d(TAG, "USB Device Attached")
-                    Toast.makeText(context, "USB Cihazı Algılandı", Toast.LENGTH_SHORT).show()
-                    
-                    // Ses sistemini yeniden başlat (Routing değişimi için)
+                    Toast.makeText(context, "USB Device Detected", Toast.LENGTH_SHORT).show()
                     stopListening()
                     lifecycleScope.launch(Dispatchers.IO) {
-                        delay(1000) // Cihazın hazır olması için bekle
+                        delay(1000)
                         arduinoSerial?.scanAndConnect()
-                        
                         withContext(Dispatchers.Main) {
-                            startListening() // Sesi tekrar başlat
+                            if (!isPaused) startListening()
                         }
                     }
                 }
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     Log.d(TAG, "USB Device Detached")
-                    Toast.makeText(context, "USB Cihazı Çıkarıldı", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "USB Device Removed", Toast.LENGTH_SHORT).show()
                     arduinoSerial?.disconnect()
                 }
             }
@@ -175,11 +344,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * Modülleri başlat
-     */
     private fun initializeModules() {
-        updateStatus("Modeller yükleniyor...", StatusColor.PROCESSING)
+        updateStatus("Loading...", "Initializing models...")
         
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -195,25 +361,21 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "Initializing ArduinoSerial...")
                 arduinoSerial = ArduinoSerial(this@MainActivity)
                 
-                // Observer'ı sadece bir kez başlat
                 withContext(Dispatchers.Main) {
                     observeArduinoConnection()
-                    updateStatus("Hazır", StatusColor.SUCCESS)
+                    updateStatus("Ready", "Models loaded successfully.")
                     checkPermissionAndStart()
                 }
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Module initialization error", e)
                 withContext(Dispatchers.Main) {
-                    updateStatus("Hata: ${e.message?.take(50)}", StatusColor.ERROR)
+                    updateStatus("Error", "Failed to load models: ${e.message?.take(50)}")
                 }
             }
         }
     }
     
-    /**
-     * İzin kontrolü ve dinlemeyi başlat
-     */
     private fun checkPermissionAndStart() {
         when {
             ContextCompat.checkSelfPermission(
@@ -227,23 +389,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * Ses dinlemeyi başlat
-     */
     private fun startListening() {
-        if (isListening) return
+        if (isListening || isPaused) return
         
         val capture = audioCapture ?: return
         
         if (!capture.start()) {
-            updateStatus("Mikrofon başlatılamadı", StatusColor.ERROR)
+            updateStatus("Error", "Could not start microphone.")
             return
         }
         
         isListening = true
-        updateStatus("Dinleniyor...", StatusColor.LISTENING)
+        updateStatus("Listening...", "Monitoring active in background.\nEnvironment is quiet.")
+        startPulseAnimation()
         
-        // Audio event'lerini dinle
+        // Update status badge
+        binding.statusBadgeText.text = "LIVE FEED"
+        binding.statusDot.setBackgroundResource(R.drawable.circle_small)
+        
+        lifecycleScope.launch(Dispatchers.IO) {
+            arduinoSerial?.sendInfo("Listening...", "Waiting for baby")
+            arduinoSerial?.setTrafficLight(ArduinoSerial.TrafficLightState.GREEN)
+        }
+        
         processingJob = lifecycleScope.launch {
             try {
                 capture.audioEvents.collectLatest { event ->
@@ -254,12 +422,15 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         is AudioEvent.Silence -> {
-                            updateDebug("RMS: ${String.format("%.4f", event.rms)} (sessiz)")
+                            updateDebug("RMS: ${String.format("%.4f", event.rms)} (quiet)")
+                            withContext(Dispatchers.IO) {
+                                arduinoSerial?.setTrafficLight(ArduinoSerial.TrafficLightState.GREEN)
+                            }
                         }
                         is AudioEvent.Error -> {
                             Log.e(TAG, "Audio Error: ${event.message}")
                             withContext(Dispatchers.Main) {
-                                updateDebug("Mikrofon Hatası: ${event.message}")
+                                updateDebug("Mic Error: ${event.message}")
                             }
                         }
                     }
@@ -267,25 +438,22 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Audio processing error", e)
                 withContext(Dispatchers.Main) {
-                    updateDebug("Hata: ${e.message}")
+                    updateDebug("Error: ${e.message}")
                 }
             }
         }
     }
     
-    /**
-     * Ses dinlemeyi durdur
-     */
     private fun stopListening() {
         isListening = false
         processingJob?.cancel()
         processingJob = null
         audioCapture?.stop()
+        stopPulseAnimation()
+        
+        binding.statusBadgeText.text = "PAUSED"
     }
     
-    /**
-     * Ses verisini işle - Debouncing ile
-     */
     private suspend fun processAudio(samples: FloatArray, rms: Float) {
         val yamnet = yamnetProcessor ?: return
         val classifier = cryClassifier ?: return
@@ -294,10 +462,9 @@ class MainActivity : AppCompatActivity() {
         
         try {
             withContext(Dispatchers.Main) {
-                updateDebug("RMS: ${String.format("%.4f", rms)} | İşleniyor...")
+                updateDebug("RMS: ${String.format("%.4f", rms)} | Processing...")
             }
             
-            // YAMNet ile embedding ve baby cry kontrolü
             val yamnetResult = withContext(Dispatchers.Default) {
                 yamnet.process(samples)
             }
@@ -306,36 +473,31 @@ class MainActivity : AppCompatActivity() {
                 updateDebug("RMS: ${String.format("%.4f", rms)} | ${yamnetResult.topClassName} (${String.format("%.1f", yamnetResult.topScore * 100)}%)")
             }
             
-            // Baby cry değilse
             if (!yamnetResult.isBabyCrying) {
-                // Eğer toplama modundaysak ve uzun süre baby cry gelmezse sıfırla
                 if (isCollectingDetections) {
                     val elapsed = System.currentTimeMillis() - detectionStartTime
-                    // 2 saniyeden fazla sessizlik varsa toplama iptal
                     if (elapsed > 2000 && detectionResults.isEmpty()) {
                         isCollectingDetections = false
                         withContext(Dispatchers.Main) {
-                            updateStatus("Dinleniyor...", StatusColor.LISTENING)
+                            updateStatus("Listening...", "Monitoring active in background.\nEnvironment is quiet.")
+                            startPulseAnimation()
                         }
                     }
                 }
                 
-                // Diğer sesleri Arduino'ya gönder (Hız kontrollü)
                 val now = System.currentTimeMillis()
                 if (now - lastSerialSendTime >= SERIAL_SEND_INTERVAL) {
                     lastSerialSendTime = now
                     try {
-                        // İngilizce etiketleri basitçe Türkçeye çevirip gönderelim veya olduğu gibi
-                        // YAMNet sınıfları genelde İngilizce: "Speech", "Music", "Silence" vs.
                         val labelToSend = when(yamnetResult.topClassName) {
                             "Speech" -> "Konusma"
                             "Silence" -> "Sessizlik"
                             "Music" -> "Muzik"
                             else -> yamnetResult.topClassName
                         }
-                        
-                        // IO thread'de gönder
-                        arduinoSerial?.sendResult(labelToSend)
+                        val score = (yamnetResult.topScore * 100).toInt()
+                        arduinoSerial?.sendInfo("Ses: $labelToSend", "%$score - Bebek yok")
+                        arduinoSerial?.setTrafficLight(ArduinoSerial.TrafficLightState.YELLOW)
                     } catch (e: Exception) {
                         Log.e(TAG, "Non-cry serial error", e)
                     }
@@ -345,83 +507,159 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             
-            // Baby cry tespit edildi!
+            // Baby cry detected!
+            withContext(Dispatchers.IO) {
+                arduinoSerial?.setTrafficLight(ArduinoSerial.TrafficLightState.RED)
+            }
+            
             val result = withContext(Dispatchers.Default) {
                 classifier.classify(yamnetResult.embedding)
             }
             
-            // Toplama modunu başlat veya devam et
             if (!isCollectingDetections) {
                 isCollectingDetections = true
                 detectionStartTime = System.currentTimeMillis()
                 detectionResults.clear()
                 
                 withContext(Dispatchers.Main) {
-                    updateStatus("Bebek ağlaması analiz ediliyor...", StatusColor.DETECTED)
+                    updateStatus("Analyzing...", "Baby cry detected!\nAnalyzing the cause...")
+                    stopPulseAnimation()
+                    binding.statusBadgeText.text = "DETECTING"
                 }
             }
             
-            // Sonucu listeye ekle
             detectionResults.add(result)
-            Log.d(TAG, "Detection added: ${result.predictedLabel} (${detectionResults.size} samples)")
             
-            // Anlık güncelleme göster
             val elapsedSeconds = (System.currentTimeMillis() - detectionStartTime) / 1000
             withContext(Dispatchers.Main) {
-                updateStatus("Analiz ediliyor... (${elapsedSeconds}s / 5s)", StatusColor.DETECTED)
+                updateStatus("Analyzing...", "Processing... (${elapsedSeconds}s / 5s)")
             }
             
-            // 5 saniye doldu mu?
             val elapsed = System.currentTimeMillis() - detectionStartTime
             if (elapsed >= DETECTION_WINDOW_MS && detectionResults.isNotEmpty()) {
-                // Voting ile final sonucu belirle
-                val finalResult = computeFinalResult(detectionResults)
+                stopListening()
                 
-                Log.d(TAG, "Final decision after ${detectionResults.size} samples: ${finalResult.predictedLabel}")
-                
-                withContext(Dispatchers.Main) {
-                    showResult(finalResult)
-                }
-                
-                // Arduino'ya gönder (Suspend - IO ve Main dışı)
-                try {
-                    arduinoSerial?.sendResult(finalResult.getLcdText())
-                } catch (e: Exception) {
-                    Log.e(TAG, "Arduino send error", e)
-                }
-                
-                // Sıfırla ve bekle
-                isCollectingDetections = false
-                detectionResults.clear()
-                
-                // 5 saniye bekle ve buffer'ı temizle
-                delay(5000)
-                audioCapture?.clearBuffer()
-                
-                withContext(Dispatchers.Main) {
-                    hideResult()
-                    updateStatus("Dinleniyor...", StatusColor.LISTENING)
+                lifecycleScope.launch {
+                    try {
+                        val finalResult = computeFinalResult(detectionResults)
+                        addToHistory(finalResult)
+                        
+                        val secondBest = findSecondBest(detectionResults)
+                        
+                        Log.d(TAG, "Final decision: ${finalResult.predictedLabel}")
+                        
+                        withContext(Dispatchers.IO) {
+                            try {
+                                val conf = (finalResult.confidence * 100).toInt()
+                                arduinoSerial?.sendInfo(finalResult.predictedLabel, "$conf Guven")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Arduino send error", e)
+                            }
+                        }
+                        
+                        withContext(Dispatchers.Main) {
+                            updateStatus("${finalResult.emoji} ${finalResult.predictedLabel}", "Detected with ${String.format("%.0f", finalResult.confidence * 100)}% confidence")
+                        }
+                        
+                        val sensorReading = arduinoSerial?.readSensorData()
+                        
+                        if (sensorReading != null) {
+                            val warnings = checkEnvironment(sensorReading.temp, sensorReading.hum)
+                            if (warnings.isNotEmpty()) {
+                                withContext(Dispatchers.IO) {
+                                    for ((title, message) in warnings) {
+                                        arduinoSerial?.sendScrollingInfo(title, message, 5000)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (finalResult.predictedClass in listOf("tired", "discomfort")) {
+                            Log.d(TAG, "Baby tired/uncomfortable - Starting lullaby...")
+                            withContext(Dispatchers.IO) {
+                                arduinoSerial?.sendInfo("Ninni Caliyor", "Dandini Dastana")
+                                arduinoSerial?.playLullaby()
+                            }
+                            delay(30000)
+                            Log.d(TAG, "Lullaby finished")
+                        }
+                        
+                        withContext(Dispatchers.Main) {
+                            com.ciona.babycry.ui.FollowUpDialog(
+                                this@MainActivity,
+                                finalResult,
+                                sensorReading?.displayString,
+                                secondBest
+                            ) {
+                                lifecycleScope.launch {
+                                    updateStatus("Restarting...", "Preparing to listen again...")
+                                    delay(1000)
+                                    audioCapture?.clearBuffer()
+                                    isCollectingDetections = false
+                                    detectionResults.clear()
+                                    startListening()
+                                }
+                            }.show()
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Result processing error", e)
+                        updateStatus("Error", "Processing failed, restarting...")
+                        delay(2000)
+                        startListening()
+                    }
                 }
             }
             
         } catch (e: Exception) {
             Log.e(TAG, "Process audio error", e)
             withContext(Dispatchers.Main) {
-                updateDebug("İşleme hatası: ${e.message?.take(30)}")
+                updateDebug("Processing error: ${e.message?.take(30)}")
             }
+            if (!isListening) startListening()
         } finally {
             isProcessing = false
         }
     }
     
-    /**
-     * Voting sistemi ile final sonucu hesapla
-     */
+    private fun findSecondBest(results: List<ClassificationResult>): String? {
+        val votes = mutableMapOf<String, Float>()
+        for (r in results) {
+            votes[r.predictedClass] = (votes[r.predictedClass] ?: 0f) + r.confidence
+        }
+        val sorted = votes.entries.sortedByDescending { it.value }
+        return if (sorted.size > 1) {
+            val label = sorted[1].key
+            CryClassifier.CLASS_LABELS_TR[label] ?: label
+        } else null
+    }
+    
+    private fun checkEnvironment(temp: Float, hum: Float): List<Pair<String, String>> {
+        val warnings = mutableListOf<Pair<String, String>>()
+        val TEMP_HIGH = 28.0f
+        val TEMP_LOW = 18.0f
+        val HUM_HIGH = 70.0f
+        val HUM_LOW = 30.0f
+        
+        if (temp > TEMP_HIGH) {
+            warnings.add("Terliyor Olabilir" to "Sicak ${temp.toInt()}C")
+        } else if (temp < TEMP_LOW) {
+            warnings.add("Usuyor Olabilir" to "Soguk ${temp.toInt()}C")
+        }
+        
+        if (hum > HUM_HIGH) {
+            warnings.add("Terliyor Olabilir" to "Nem Yuksek %${hum.toInt()}")
+        } else if (hum < HUM_LOW) {
+            warnings.add("Kuru Hava Uyarisi" to "Nem Dusuk %${hum.toInt()}")
+        }
+        
+        return warnings
+    }
+
     private fun computeFinalResult(results: List<ClassificationResult>): ClassificationResult {
         if (results.isEmpty()) {
             return ClassificationResult(
                 predictedClass = "unknown",
-                predictedLabel = "Bilinmiyor",
+                predictedLabel = "Unknown",
                 emoji = "❓",
                 confidence = 0f,
                 isConfident = false,
@@ -429,7 +667,6 @@ class MainActivity : AppCompatActivity() {
             )
         }
         
-        // Her sınıf için oy topla (confidence ağırlıklı)
         val votes = mutableMapOf<String, Float>()
         val probSums = mutableMapOf<String, MutableMap<String, Float>>()
         
@@ -437,7 +674,6 @@ class MainActivity : AppCompatActivity() {
             val cls = result.predictedClass
             votes[cls] = (votes[cls] ?: 0f) + result.confidence
             
-            // Probability toplamlarını da tut
             if (!probSums.containsKey(cls)) {
                 probSums[cls] = mutableMapOf()
             }
@@ -446,14 +682,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
         
-        // En yüksek oyu alan sınıfı bul
         val winningClass = votes.maxByOrNull { it.value }?.key ?: results.last().predictedClass
-        
-        // O sınıfa ait sonuçların ortalamasını al
         val classResults = results.filter { it.predictedClass == winningClass }
         val avgConfidence = classResults.map { it.confidence }.average().toFloat()
         
-        // Ortalama probabilities
         val avgProbs = mutableMapOf<String, Float>()
         val sampleCount = classResults.size
         if (sampleCount > 0) {
@@ -476,116 +708,15 @@ class MainActivity : AppCompatActivity() {
         )
     }
     
-    /**
-     * Sonucu göster
-     */
-    private fun showResult(result: ClassificationResult) {
-        binding.resultCard.visibility = View.VISIBLE
-        binding.resultEmoji.text = result.emoji
-        binding.resultLabel.text = result.predictedLabel
-        binding.resultConfidence.text = "Güven: %${String.format("%.1f", result.confidence * 100)}"
-        
-        // Güven rengi
-        binding.resultConfidence.setTextColor(
-            if (result.isConfident) getColor(R.color.success) else getColor(R.color.warning)
-        )
-        
-        // Confidence bar'ları göster
-        showConfidenceBars(result.allProbabilities, result.predictedClass)
+    private fun updateStatus(title: String, subtitle: String) {
+        binding.statusText.text = title
+        binding.statusSubtext.text = subtitle
     }
     
-    /**
-     * Sonucu gizle
-     */
-    private fun hideResult() {
-        binding.resultCard.visibility = View.GONE
-        binding.confidenceBarsContainer.removeAllViews()
-    }
-    
-    /**
-     * Tüm sınıfların güven bar'larını göster
-     */
-    private fun showConfidenceBars(probabilities: Map<String, Float>, selectedClass: String) {
-        binding.confidenceBarsContainer.removeAllViews()
-        
-        if (probabilities.isEmpty()) return
-        
-        // Olasılığa göre sırala
-        val sorted = probabilities.entries.sortedByDescending { it.value }
-        
-        for ((className, prob) in sorted) {
-            val container = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { 
-                    topMargin = 8 
-                }
-            }
-            
-            // Etiket
-            val label = TextView(this).apply {
-                text = "${CryClassifier.CLASS_EMOJIS[className] ?: ""} ${CryClassifier.CLASS_LABELS_TR[className] ?: className}"
-                textSize = 12f
-                setTextColor(if (className == selectedClass) getColor(R.color.primary) else getColor(R.color.on_surface))
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            }
-            
-            // Progress bar
-            val progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                max = 100
-                this.progress = (prob * 100).toInt()
-            }
-            
-            // Yüzde
-            val percent = TextView(this).apply {
-                text = "${String.format("%.1f", prob * 100)}%"
-                textSize = 12f
-                setTextColor(getColor(R.color.on_surface))
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { marginStart = 8 }
-            }
-            
-            container.addView(label)
-            container.addView(progress)
-            container.addView(percent)
-            
-            binding.confidenceBarsContainer.addView(container)
-        }
-    }
-    
-    /**
-     * Durum mesajını güncelle
-     */
-    private fun updateStatus(message: String, color: StatusColor) {
-        binding.statusText.text = message
-        
-        val indicatorColor = when (color) {
-            StatusColor.LISTENING -> getColor(R.color.status_listening)
-            StatusColor.PROCESSING -> getColor(R.color.status_processing)
-            StatusColor.DETECTED -> getColor(R.color.status_detected)
-            StatusColor.SUCCESS -> getColor(R.color.success)
-            StatusColor.ERROR -> getColor(R.color.error)
-        }
-        
-        (binding.statusIndicator.background as? GradientDrawable)?.setColor(indicatorColor)
-            ?: binding.statusIndicator.setBackgroundColor(indicatorColor)
-    }
-    
-    /**
-     * Debug bilgisini güncelle
-     */
     private fun updateDebug(text: String) {
         binding.debugText.text = text
     }
     
-    /**
-     * Arduino bağlantı durumunu gözlemle
-     */
     private fun observeArduinoConnection() {
         lifecycleScope.launch {
             try {
@@ -605,9 +736,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * Kaynakları serbest bırak
-     */
     private fun releaseModules() {
         stopListening()
         yamnetProcessor?.close()
@@ -618,12 +746,5 @@ class MainActivity : AppCompatActivity() {
         cryClassifier = null
         audioCapture = null
         arduinoSerial = null
-    }
-    
-    /**
-     * Durum renkleri
-     */
-    enum class StatusColor {
-        LISTENING, PROCESSING, DETECTED, SUCCESS, ERROR
     }
 }

@@ -4,22 +4,31 @@ package com.ciona.babycry.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.ciona.babycry.R;
-import com.google.android.material.card.MaterialCardView;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
 
 public final class ActivityMainBinding implements ViewBinding {
   @NonNull
-  private final ConstraintLayout rootView;
+  private final DrawerLayout rootView;
+
+  @NonNull
+  public final LinearLayout actionButton;
+
+  @NonNull
+  public final TextView actionButtonText;
 
   @NonNull
   public final View arduinoIndicator;
@@ -31,65 +40,131 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextView arduinoText;
 
   @NonNull
-  public final LinearLayout confidenceBarsContainer;
+  public final LinearLayout bottomNavigation;
 
   @NonNull
   public final TextView debugText;
 
   @NonNull
-  public final MaterialCardView resultCard;
+  public final RecyclerView drawerHistoryRecyclerView;
 
   @NonNull
-  public final TextView resultConfidence;
+  public final DrawerLayout drawerLayout;
 
   @NonNull
-  public final TextView resultEmoji;
+  public final LinearLayout emptyHistoryContainer;
 
   @NonNull
-  public final TextView resultLabel;
+  public final RecyclerView historyRecyclerView;
 
   @NonNull
-  public final MaterialCardView statusCard;
+  public final ImageButton menuButton;
 
   @NonNull
-  public final View statusIndicator;
+  public final ImageView micIcon;
+
+  @NonNull
+  public final LinearLayout navHistory;
+
+  @NonNull
+  public final LinearLayout navHome;
+
+  @NonNull
+  public final LinearLayout navProfile;
+
+  @NonNull
+  public final LinearLayout navigationDrawer;
+
+  @NonNull
+  public final View pulseRingInner;
+
+  @NonNull
+  public final View pulseRingMiddle;
+
+  @NonNull
+  public final View pulseRingOuter;
+
+  @NonNull
+  public final TextView sensitivityLabel;
+
+  @NonNull
+  public final View sensitivityProgress;
+
+  @NonNull
+  public final ImageButton settingsButton;
+
+  @NonNull
+  public final LinearLayout statusBadge;
+
+  @NonNull
+  public final TextView statusBadgeText;
+
+  @NonNull
+  public final View statusDot;
+
+  @NonNull
+  public final TextView statusSubtext;
 
   @NonNull
   public final TextView statusText;
 
   @NonNull
-  public final TextView subtitleText;
+  public final RelativeLayout topHeader;
 
   @NonNull
-  public final TextView titleText;
+  public final TextView viewAllButton;
 
-  private ActivityMainBinding(@NonNull ConstraintLayout rootView, @NonNull View arduinoIndicator,
+  private ActivityMainBinding(@NonNull DrawerLayout rootView, @NonNull LinearLayout actionButton,
+      @NonNull TextView actionButtonText, @NonNull View arduinoIndicator,
       @NonNull LinearLayout arduinoStatus, @NonNull TextView arduinoText,
-      @NonNull LinearLayout confidenceBarsContainer, @NonNull TextView debugText,
-      @NonNull MaterialCardView resultCard, @NonNull TextView resultConfidence,
-      @NonNull TextView resultEmoji, @NonNull TextView resultLabel,
-      @NonNull MaterialCardView statusCard, @NonNull View statusIndicator,
-      @NonNull TextView statusText, @NonNull TextView subtitleText, @NonNull TextView titleText) {
+      @NonNull LinearLayout bottomNavigation, @NonNull TextView debugText,
+      @NonNull RecyclerView drawerHistoryRecyclerView, @NonNull DrawerLayout drawerLayout,
+      @NonNull LinearLayout emptyHistoryContainer, @NonNull RecyclerView historyRecyclerView,
+      @NonNull ImageButton menuButton, @NonNull ImageView micIcon, @NonNull LinearLayout navHistory,
+      @NonNull LinearLayout navHome, @NonNull LinearLayout navProfile,
+      @NonNull LinearLayout navigationDrawer, @NonNull View pulseRingInner,
+      @NonNull View pulseRingMiddle, @NonNull View pulseRingOuter,
+      @NonNull TextView sensitivityLabel, @NonNull View sensitivityProgress,
+      @NonNull ImageButton settingsButton, @NonNull LinearLayout statusBadge,
+      @NonNull TextView statusBadgeText, @NonNull View statusDot, @NonNull TextView statusSubtext,
+      @NonNull TextView statusText, @NonNull RelativeLayout topHeader,
+      @NonNull TextView viewAllButton) {
     this.rootView = rootView;
+    this.actionButton = actionButton;
+    this.actionButtonText = actionButtonText;
     this.arduinoIndicator = arduinoIndicator;
     this.arduinoStatus = arduinoStatus;
     this.arduinoText = arduinoText;
-    this.confidenceBarsContainer = confidenceBarsContainer;
+    this.bottomNavigation = bottomNavigation;
     this.debugText = debugText;
-    this.resultCard = resultCard;
-    this.resultConfidence = resultConfidence;
-    this.resultEmoji = resultEmoji;
-    this.resultLabel = resultLabel;
-    this.statusCard = statusCard;
-    this.statusIndicator = statusIndicator;
+    this.drawerHistoryRecyclerView = drawerHistoryRecyclerView;
+    this.drawerLayout = drawerLayout;
+    this.emptyHistoryContainer = emptyHistoryContainer;
+    this.historyRecyclerView = historyRecyclerView;
+    this.menuButton = menuButton;
+    this.micIcon = micIcon;
+    this.navHistory = navHistory;
+    this.navHome = navHome;
+    this.navProfile = navProfile;
+    this.navigationDrawer = navigationDrawer;
+    this.pulseRingInner = pulseRingInner;
+    this.pulseRingMiddle = pulseRingMiddle;
+    this.pulseRingOuter = pulseRingOuter;
+    this.sensitivityLabel = sensitivityLabel;
+    this.sensitivityProgress = sensitivityProgress;
+    this.settingsButton = settingsButton;
+    this.statusBadge = statusBadge;
+    this.statusBadgeText = statusBadgeText;
+    this.statusDot = statusDot;
+    this.statusSubtext = statusSubtext;
     this.statusText = statusText;
-    this.subtitleText = subtitleText;
-    this.titleText = titleText;
+    this.topHeader = topHeader;
+    this.viewAllButton = viewAllButton;
   }
 
   @Override
   @NonNull
-  public ConstraintLayout getRoot() {
+  public DrawerLayout getRoot() {
     return rootView;
   }
 
@@ -114,6 +189,18 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.actionButton;
+      LinearLayout actionButton = ViewBindings.findChildViewById(rootView, id);
+      if (actionButton == null) {
+        break missingId;
+      }
+
+      id = R.id.actionButtonText;
+      TextView actionButtonText = ViewBindings.findChildViewById(rootView, id);
+      if (actionButtonText == null) {
+        break missingId;
+      }
+
       id = R.id.arduinoIndicator;
       View arduinoIndicator = ViewBindings.findChildViewById(rootView, id);
       if (arduinoIndicator == null) {
@@ -132,9 +219,9 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.confidenceBarsContainer;
-      LinearLayout confidenceBarsContainer = ViewBindings.findChildViewById(rootView, id);
-      if (confidenceBarsContainer == null) {
+      id = R.id.bottomNavigation;
+      LinearLayout bottomNavigation = ViewBindings.findChildViewById(rootView, id);
+      if (bottomNavigation == null) {
         break missingId;
       }
 
@@ -144,39 +231,119 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.resultCard;
-      MaterialCardView resultCard = ViewBindings.findChildViewById(rootView, id);
-      if (resultCard == null) {
+      id = R.id.drawerHistoryRecyclerView;
+      RecyclerView drawerHistoryRecyclerView = ViewBindings.findChildViewById(rootView, id);
+      if (drawerHistoryRecyclerView == null) {
         break missingId;
       }
 
-      id = R.id.resultConfidence;
-      TextView resultConfidence = ViewBindings.findChildViewById(rootView, id);
-      if (resultConfidence == null) {
+      DrawerLayout drawerLayout = (DrawerLayout) rootView;
+
+      id = R.id.emptyHistoryContainer;
+      LinearLayout emptyHistoryContainer = ViewBindings.findChildViewById(rootView, id);
+      if (emptyHistoryContainer == null) {
         break missingId;
       }
 
-      id = R.id.resultEmoji;
-      TextView resultEmoji = ViewBindings.findChildViewById(rootView, id);
-      if (resultEmoji == null) {
+      id = R.id.historyRecyclerView;
+      RecyclerView historyRecyclerView = ViewBindings.findChildViewById(rootView, id);
+      if (historyRecyclerView == null) {
         break missingId;
       }
 
-      id = R.id.resultLabel;
-      TextView resultLabel = ViewBindings.findChildViewById(rootView, id);
-      if (resultLabel == null) {
+      id = R.id.menuButton;
+      ImageButton menuButton = ViewBindings.findChildViewById(rootView, id);
+      if (menuButton == null) {
         break missingId;
       }
 
-      id = R.id.statusCard;
-      MaterialCardView statusCard = ViewBindings.findChildViewById(rootView, id);
-      if (statusCard == null) {
+      id = R.id.micIcon;
+      ImageView micIcon = ViewBindings.findChildViewById(rootView, id);
+      if (micIcon == null) {
         break missingId;
       }
 
-      id = R.id.statusIndicator;
-      View statusIndicator = ViewBindings.findChildViewById(rootView, id);
-      if (statusIndicator == null) {
+      id = R.id.navHistory;
+      LinearLayout navHistory = ViewBindings.findChildViewById(rootView, id);
+      if (navHistory == null) {
+        break missingId;
+      }
+
+      id = R.id.navHome;
+      LinearLayout navHome = ViewBindings.findChildViewById(rootView, id);
+      if (navHome == null) {
+        break missingId;
+      }
+
+      id = R.id.navProfile;
+      LinearLayout navProfile = ViewBindings.findChildViewById(rootView, id);
+      if (navProfile == null) {
+        break missingId;
+      }
+
+      id = R.id.navigationDrawer;
+      LinearLayout navigationDrawer = ViewBindings.findChildViewById(rootView, id);
+      if (navigationDrawer == null) {
+        break missingId;
+      }
+
+      id = R.id.pulseRingInner;
+      View pulseRingInner = ViewBindings.findChildViewById(rootView, id);
+      if (pulseRingInner == null) {
+        break missingId;
+      }
+
+      id = R.id.pulseRingMiddle;
+      View pulseRingMiddle = ViewBindings.findChildViewById(rootView, id);
+      if (pulseRingMiddle == null) {
+        break missingId;
+      }
+
+      id = R.id.pulseRingOuter;
+      View pulseRingOuter = ViewBindings.findChildViewById(rootView, id);
+      if (pulseRingOuter == null) {
+        break missingId;
+      }
+
+      id = R.id.sensitivityLabel;
+      TextView sensitivityLabel = ViewBindings.findChildViewById(rootView, id);
+      if (sensitivityLabel == null) {
+        break missingId;
+      }
+
+      id = R.id.sensitivityProgress;
+      View sensitivityProgress = ViewBindings.findChildViewById(rootView, id);
+      if (sensitivityProgress == null) {
+        break missingId;
+      }
+
+      id = R.id.settingsButton;
+      ImageButton settingsButton = ViewBindings.findChildViewById(rootView, id);
+      if (settingsButton == null) {
+        break missingId;
+      }
+
+      id = R.id.statusBadge;
+      LinearLayout statusBadge = ViewBindings.findChildViewById(rootView, id);
+      if (statusBadge == null) {
+        break missingId;
+      }
+
+      id = R.id.statusBadgeText;
+      TextView statusBadgeText = ViewBindings.findChildViewById(rootView, id);
+      if (statusBadgeText == null) {
+        break missingId;
+      }
+
+      id = R.id.statusDot;
+      View statusDot = ViewBindings.findChildViewById(rootView, id);
+      if (statusDot == null) {
+        break missingId;
+      }
+
+      id = R.id.statusSubtext;
+      TextView statusSubtext = ViewBindings.findChildViewById(rootView, id);
+      if (statusSubtext == null) {
         break missingId;
       }
 
@@ -186,22 +353,25 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.subtitleText;
-      TextView subtitleText = ViewBindings.findChildViewById(rootView, id);
-      if (subtitleText == null) {
+      id = R.id.topHeader;
+      RelativeLayout topHeader = ViewBindings.findChildViewById(rootView, id);
+      if (topHeader == null) {
         break missingId;
       }
 
-      id = R.id.titleText;
-      TextView titleText = ViewBindings.findChildViewById(rootView, id);
-      if (titleText == null) {
+      id = R.id.viewAllButton;
+      TextView viewAllButton = ViewBindings.findChildViewById(rootView, id);
+      if (viewAllButton == null) {
         break missingId;
       }
 
-      return new ActivityMainBinding((ConstraintLayout) rootView, arduinoIndicator, arduinoStatus,
-          arduinoText, confidenceBarsContainer, debugText, resultCard, resultConfidence,
-          resultEmoji, resultLabel, statusCard, statusIndicator, statusText, subtitleText,
-          titleText);
+      return new ActivityMainBinding((DrawerLayout) rootView, actionButton, actionButtonText,
+          arduinoIndicator, arduinoStatus, arduinoText, bottomNavigation, debugText,
+          drawerHistoryRecyclerView, drawerLayout, emptyHistoryContainer, historyRecyclerView,
+          menuButton, micIcon, navHistory, navHome, navProfile, navigationDrawer, pulseRingInner,
+          pulseRingMiddle, pulseRingOuter, sensitivityLabel, sensitivityProgress, settingsButton,
+          statusBadge, statusBadgeText, statusDot, statusSubtext, statusText, topHeader,
+          viewAllButton);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
