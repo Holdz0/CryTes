@@ -74,10 +74,10 @@ class ActivitiesDialog(
         button.text = "🎵 Ninni Çalıyor..."
         timerText.visibility = android.view.View.VISIBLE
         
-        // Arduino'ya ninni komutu gönder
+        // Arduino'ya ninni + oyuncak komutu gönder (PLAY_SOOTHE)
         scope.launch(Dispatchers.IO) {
-            arduinoSerial?.sendInfo("Ninni Caliyor", "Dandini Dastana")
-            arduinoSerial?.playLullaby()
+            arduinoSerial?.sendInfo("Ninni+Oyuncak", "Bebek sakinles")
+            arduinoSerial?.playSoothe()  // Hem ninni hem oyuncak çalıştırır
         }
         
         // Cooldown timer

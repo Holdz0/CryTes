@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#122017</color>
+    <color name="background_elevated">#1A2633</color>
+    <color name="blue">#3B82F6</color>
+    <color name="border_5">#0DFFFFFF</color>
+    <color name="border_light">#1AFFFFFF</color>
+    <color name="card_background">#1A2633</color>
+    <color name="card_border">#0DFFFFFF</color>
+    <color name="error">#EF4444</color>
+    <color name="nav_background">#E6101922</color>
+    <color name="on_background">#FFFFFF</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="on_surface">#FFFFFF</color>
+    <color name="orange">#F97316</color>
+    <color name="overlay_blue">#333B82F6</color>
+    <color name="overlay_orange">#33F97316</color>
+    <color name="overlay_purple">#33A855F7</color>
+    <color name="overlay_red">#33EF4444</color>
+    <color name="primary">#1DB954</color>
+    <color name="primary_10">#1A1DB954</color>
+    <color name="primary_20">#331DB954</color>
+    <color name="primary_30">#4D1DB954</color>
+    <color name="primary_5">#0D1DB954</color>
+    <color name="primary_dark">#1AA34A</color>
+    <color name="primary_light">#1ED760</color>
+    <color name="primary_variant">#1AA34A</color>
+    <color name="purple">#A855F7</color>
+    <color name="secondary">#1DB954</color>
+    <color name="secondary_variant">#1AA34A</color>
+    <color name="status_detected">#EF4444</color>
+    <color name="status_inactive">#64748B</color>
+    <color name="status_listening">#22C55E</color>
+    <color name="status_processing">#F59E0B</color>
+    <color name="success">#22C55E</color>
+    <color name="surface">#1A2633</color>
+    <color name="surface_dark">#101922</color>
+    <color name="text_disabled">#64748B</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="warning">#F59E0B</color>
+    <string name="app_name">Crytes</string>
+    <string name="arduino_connected">Arduino bağlı</string>
+    <string name="arduino_disconnected">Arduino bağlı değil</string>
+    <string name="label_belly_pain">Karın Ağrısı 😣</string>
+    <string name="label_burping">Gaz/Geğirme 💨</string>
+    <string name="label_discomfort">Rahatsızlık 😫</string>
+    <string name="label_hungry">Açlık 🍼</string>
+    <string name="label_tired">Yorgunluk 😴</string>
+    <string name="permission_required">Mikrofon izni gerekli</string>
+    <string name="status_detected">Bebek ağlaması tespit edildi!</string>
+    <string name="status_listening">Dinleniyor...</string>
+    <string name="status_processing">Analiz ediliyor...</string>
+    <string name="status_waiting">Modeller yükleniyor...</string>
+    <style name="Theme.Crytes" parent="Theme.Material3.Dark.NoActionBar">
+        
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_variant</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        
+        
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_variant</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        
+        
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnBackground">@color/on_background</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        
+        
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        
+        <item name="colorError">@color/error</item>
+        
+        
+        <item name="materialButtonStyle">@style/Widget.Crytes.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.Crytes.Card</item>
+    </style>
+    <style name="Theme.Crytes.Dialog" parent="ThemeOverlay.Material3.Dialog">
+        <item name="android:background">@drawable/dialog_background</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+    <style name="Widget.Crytes.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/on_primary</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="Widget.Crytes.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/card_background</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">8dp</item>
+        <item name="strokeColor">@color/card_border</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+</resources>

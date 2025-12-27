@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="28dp"
+    android:background="@drawable/dialog_background"
+    android:minWidth="320dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎮"
+            android:textSize="40sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Etkinlikler"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:gravity="center"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manuel kontroller"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:layout_marginTop="4dp"/>
+
+    </LinearLayout>
+
+    <!-- Lullaby Button -->
+    <Button
+        android:id="@+id/btnLullaby"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="🎵 Ninni Çal"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/on_primary"
+        android:background="@drawable/button_primary"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Lullaby Timer -->
+    <TextView
+        android:id="@+id/txtLullabyTimer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Lights Button -->
+    <Button
+        android:id="@+id/btnLights"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="💡 Işıkları Aç"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/on_primary"
+        android:background="@drawable/button_primary"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Lights Timer -->
+    <TextView
+        android:id="@+id/txtLightsTimer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Close Button -->
+    <Button
+        android:id="@+id/btnClose"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Kapat"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:background="?attr/selectableItemBackground"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>
