@@ -3,44 +3,65 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:padding="28dp"
     android:background="@drawable/dialog_background"
-    android:minWidth="300dp">
+    android:minWidth="320dp">
 
-    <TextView
-        android:id="@+id/textTitle"
+    <!-- Header with Icon -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tespit Edildi"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"
+        android:orientation="vertical"
         android:gravity="center"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="20dp">
 
+        <TextView
+            android:id="@+id/dialogEmoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔔"
+            android:textSize="40sp"/>
+
+        <TextView
+            android:id="@+id/textTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tespit Edildi"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:gravity="center"
+            android:layout_marginTop="12dp"/>
+
+    </LinearLayout>
+
+    <!-- Sensor Info Badge -->
     <TextView
         android:id="@+id/textSensorInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Ortam: 25°C | %50 Nem"
-        android:textSize="14sp"
-        android:textColor="#666666"
+        android:textSize="13sp"
+        android:textColor="@color/text_secondary"
         android:gravity="center"
-        android:background="#F0F0F0"
-        android:padding="8dp"
+        android:background="@drawable/card_background"
+        android:padding="10dp"
         android:visibility="gone"
         android:layout_marginBottom="16dp"/>
 
+    <!-- Question Text -->
     <TextView
         android:id="@+id/textQuestion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Soru buraya gelecek?"
         android:textSize="16sp"
-        android:textColor="#333333"
+        android:textColor="@color/text_primary"
         android:gravity="center"
+        android:lineSpacingExtra="4dp"
         android:layout_marginBottom="24dp"/>
 
+    <!-- Action Buttons -->
     <LinearLayout
         android:id="@+id/layoutButtons"
         android:layout_width="match_parent"
@@ -51,47 +72,76 @@
         <Button
             android:id="@+id/btnNo"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_weight="1"
             android:text="Hayır"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
             android:layout_marginEnd="8dp"
-            android:backgroundTint="#FF5252"/>
+            android:background="@drawable/button_secondary"/>
 
         <Button
             android:id="@+id/btnYes"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_weight="1"
             android:text="Evet"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/on_primary"
             android:layout_marginStart="8dp"
-            android:backgroundTint="#4CAF50"/>
+            android:background="@drawable/button_primary"/>
 
     </LinearLayout>
 
+    <!-- Advice Section -->
     <LinearLayout
         android:id="@+id/layoutAdvice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:layout_marginTop="20dp">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/card_border"
+            android:layout_marginBottom="20dp"/>
+
+        <TextView
+            android:id="@+id/textAdviceLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💡 Öneri"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:gravity="center"
+            android:layout_marginBottom="8dp"/>
 
         <TextView
             android:id="@+id/textAdvice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Öneri metni buraya gelecek."
-            android:textSize="16sp"
-            android:textStyle="italic"
-            android:textColor="#333333"
+            android:textSize="15sp"
+            android:textColor="@color/text_secondary"
             android:gravity="center"
+            android:lineSpacingExtra="4dp"
             android:layout_marginBottom="20dp"/>
 
         <Button
             android:id="@+id/btnOk"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:text="Tamam, Anlaşıldı"
-            android:backgroundTint="#2196F3"/>
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/on_primary"
+            android:background="@drawable/button_primary"/>
+
     </LinearLayout>
 
 </LinearLayout>

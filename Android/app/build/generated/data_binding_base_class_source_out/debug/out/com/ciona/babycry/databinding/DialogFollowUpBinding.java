@@ -30,6 +30,9 @@ public final class DialogFollowUpBinding implements ViewBinding {
   public final Button btnYes;
 
   @NonNull
+  public final TextView dialogEmoji;
+
+  @NonNull
   public final LinearLayout layoutAdvice;
 
   @NonNull
@@ -37,6 +40,9 @@ public final class DialogFollowUpBinding implements ViewBinding {
 
   @NonNull
   public final TextView textAdvice;
+
+  @NonNull
+  public final TextView textAdviceLabel;
 
   @NonNull
   public final TextView textQuestion;
@@ -48,17 +54,20 @@ public final class DialogFollowUpBinding implements ViewBinding {
   public final TextView textTitle;
 
   private DialogFollowUpBinding(@NonNull LinearLayout rootView, @NonNull Button btnNo,
-      @NonNull Button btnOk, @NonNull Button btnYes, @NonNull LinearLayout layoutAdvice,
-      @NonNull LinearLayout layoutButtons, @NonNull TextView textAdvice,
+      @NonNull Button btnOk, @NonNull Button btnYes, @NonNull TextView dialogEmoji,
+      @NonNull LinearLayout layoutAdvice, @NonNull LinearLayout layoutButtons,
+      @NonNull TextView textAdvice, @NonNull TextView textAdviceLabel,
       @NonNull TextView textQuestion, @NonNull TextView textSensorInfo,
       @NonNull TextView textTitle) {
     this.rootView = rootView;
     this.btnNo = btnNo;
     this.btnOk = btnOk;
     this.btnYes = btnYes;
+    this.dialogEmoji = dialogEmoji;
     this.layoutAdvice = layoutAdvice;
     this.layoutButtons = layoutButtons;
     this.textAdvice = textAdvice;
+    this.textAdviceLabel = textAdviceLabel;
     this.textQuestion = textQuestion;
     this.textSensorInfo = textSensorInfo;
     this.textTitle = textTitle;
@@ -109,6 +118,12 @@ public final class DialogFollowUpBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.dialogEmoji;
+      TextView dialogEmoji = ViewBindings.findChildViewById(rootView, id);
+      if (dialogEmoji == null) {
+        break missingId;
+      }
+
       id = R.id.layoutAdvice;
       LinearLayout layoutAdvice = ViewBindings.findChildViewById(rootView, id);
       if (layoutAdvice == null) {
@@ -124,6 +139,12 @@ public final class DialogFollowUpBinding implements ViewBinding {
       id = R.id.textAdvice;
       TextView textAdvice = ViewBindings.findChildViewById(rootView, id);
       if (textAdvice == null) {
+        break missingId;
+      }
+
+      id = R.id.textAdviceLabel;
+      TextView textAdviceLabel = ViewBindings.findChildViewById(rootView, id);
+      if (textAdviceLabel == null) {
         break missingId;
       }
 
@@ -145,8 +166,9 @@ public final class DialogFollowUpBinding implements ViewBinding {
         break missingId;
       }
 
-      return new DialogFollowUpBinding((LinearLayout) rootView, btnNo, btnOk, btnYes, layoutAdvice,
-          layoutButtons, textAdvice, textQuestion, textSensorInfo, textTitle);
+      return new DialogFollowUpBinding((LinearLayout) rootView, btnNo, btnOk, btnYes, dialogEmoji,
+          layoutAdvice, layoutButtons, textAdvice, textAdviceLabel, textQuestion, textSensorInfo,
+          textTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
