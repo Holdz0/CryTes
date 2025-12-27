@@ -9,43 +9,44 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbManager
 import android.os.Build
-import com.hoho.android.usbserial.driver.UsbSerialDriver
+import android.util.Log
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 /**
  * ArduinoSerial - USB OTG üzerinden Arduino iletişimi
- * 
- * USB Serial kütüphanesi kullanarak Arduino ile haberleşir.
- * Baud rate: 9600 (live_detection.py ile aynı)
  */
 class ArduinoSerial(private val context: Context) {
     
     companion object {
+        private const val TAG = "ArduinoSerial"
         private const val ACTION_USB_PERMISSION = "com.ciona.babycry.USB_PERMISSION"
         private const val BAUD_RATE = 9600
         private const val DATA_BITS = 8
-        private const val WRITE_TIMEOUT = 1000  // ms
+        private const val WRITE_TIMEOUT = 1000
     }
     
     private var usbManager: UsbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
     private var serialPort: UsbSerialPort? = null
     private var connection: UsbDeviceConnection? = null
     
-    // Bağlantı durumu
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected
     
-    // Bağlı cihaz bilgisi
     private val _deviceName = MutableStateFlow<String?>(null)
     val deviceName: StateFlow<String?> = _deviceName
     
-    // USB izin receiver
+    private var receiverRegistered = false
+    
     private val usbPermissionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            Log.d(TAG, "USB permission receiver triggered: ${intent.action}")
+            
             if (ACTION_USB_PERMISSION == intent.action) {
                 synchronized(this) {
                     val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -55,8 +56,16 @@ class ArduinoSerial(private val context: Context) {
                         intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
                     }
                     
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        device?.let { connectToDevice(it) }
+                    val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+                    Log.d(TAG, "USB permission granted: $granted for device: ${device?.productName}")
+                    
+                    if (granted && device != null) {
+                        // BroadcastReceiver main thread'de çalışır, bağlantıyı background'a atmalıyız
+                        // Ancak connectToDevice şu an sync, context/scope lazım.
+                        // Şimdilik basitçe çağırıyoruz, ama idealde coroutine scope lazım.
+                        // connectToDevice içinde ağır işlem yoksa sorun olmaz.
+                        // openDevice ve open() çağrıları senkron ama genelde hızlıdır.
+                        connectToDevice(device)
                     }
                 }
             }
@@ -64,56 +73,102 @@ class ArduinoSerial(private val context: Context) {
     }
     
     init {
-        // USB izin receiver'ı kaydet
-        val filter = IntentFilter(ACTION_USB_PERMISSION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(usbPermissionReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            context.registerReceiver(usbPermissionReceiver, filter)
+        registerReceiver()
+    }
+    
+    private fun registerReceiver() {
+        if (receiverRegistered) return
+        
+        try {
+            val filter = IntentFilter(ACTION_USB_PERMISSION)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(usbPermissionReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                context.registerReceiver(usbPermissionReceiver, filter)
+            }
+            receiverRegistered = true
+            Log.d(TAG, "USB receiver registered")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to register receiver", e)
         }
     }
     
     /**
      * Bağlı USB cihazlarını tara ve Arduino'ya bağlan
      */
-    fun scanAndConnect(): Boolean {
-        val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
+    /**
+     * Bağlı USB cihazlarını tara ve Arduino'ya bağlan (Background Thread)
+     */
+    suspend fun scanAndConnect(): Boolean = withContext(Dispatchers.IO) {
+        Log.d(TAG, "Scanning for USB devices...")
         
-        if (availableDrivers.isEmpty()) {
-            _isConnected.value = false
-            _deviceName.value = null
-            return false
+        try {
+            // Önce tüm USB cihazlarını listele
+            val deviceList = usbManager.deviceList
+            Log.d(TAG, "Found ${deviceList.size} USB devices")
+            
+            for ((name, device) in deviceList) {
+                Log.d(TAG, "USB Device: $name, VendorId: ${device.vendorId}, ProductId: ${device.productId}, Name: ${device.productName}")
+            }
+            
+            // Serial driver'ları bul
+            val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
+            Log.d(TAG, "Found ${availableDrivers.size} serial drivers")
+            
+            if (availableDrivers.isEmpty()) {
+                _isConnected.value = false
+                _deviceName.value = null
+                return@withContext false
+            }
+            
+            val driver = availableDrivers[0]
+            val device = driver.device
+            Log.d(TAG, "Using device: ${device.productName}, VendorId: ${device.vendorId}")
+            
+            // İzin kontrolü
+            if (!usbManager.hasPermission(device)) {
+                Log.d(TAG, "Requesting USB permission...")
+                val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                } else {
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                }
+                
+                val permissionIntent = PendingIntent.getBroadcast(
+                    context,
+                    0,
+                    Intent(ACTION_USB_PERMISSION).apply {
+                        setPackage(context.packageName)
+                    },
+                    flags
+                )
+                usbManager.requestPermission(device, permissionIntent)
+                return@withContext false
+            }
+            
+            return@withContext connectToDevice(device)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error scanning USB devices", e)
+            return@withContext false
         }
-        
-        // İlk uygun cihazı al
-        val driver = availableDrivers[0]
-        val device = driver.device
-        
-        // İzin kontrolü
-        if (!usbManager.hasPermission(device)) {
-            val permissionIntent = PendingIntent.getBroadcast(
-                context, 
-                0, 
-                Intent(ACTION_USB_PERMISSION),
-                PendingIntent.FLAG_MUTABLE
-            )
-            usbManager.requestPermission(device, permissionIntent)
-            return false
-        }
-        
-        return connectToDevice(device)
     }
     
-    /**
-     * Belirli bir USB cihazına bağlan
-     */
     private fun connectToDevice(device: UsbDevice): Boolean {
+        Log.d(TAG, "Connecting to device: ${device.productName}")
+        
         try {
             val drivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
-            val driver = drivers.find { it.device == device } ?: return false
+            val driver = drivers.find { it.device == device }
+            
+            if (driver == null) {
+                Log.e(TAG, "No driver found for device")
+                return false
+            }
             
             connection = usbManager.openDevice(device)
             if (connection == null) {
+                Log.e(TAG, "Failed to open device")
                 return false
             }
             
@@ -124,50 +179,39 @@ class ArduinoSerial(private val context: Context) {
             _isConnected.value = true
             _deviceName.value = device.productName ?: "USB Serial Device"
             
+            Log.d(TAG, "Connected successfully to ${device.productName}")
             return true
             
-        } catch (e: IOException) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to connect", e)
             disconnect()
             return false
         }
     }
     
-    /**
-     * Arduino'ya mesaj gönder
-     * 
-     * @param message Gönderilecek metin (newline otomatik eklenir)
-     */
-    fun send(message: String): Boolean {
-        val port = serialPort ?: return false
+    suspend fun send(message: String): Boolean = withContext(Dispatchers.IO) {
+        val port = serialPort ?: return@withContext false
         
-        return try {
+        return@withContext try {
             val data = "$message\n".toByteArray(Charsets.US_ASCII)
             port.write(data, WRITE_TIMEOUT)
+            Log.d(TAG, "Sent: $message")
             true
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e(TAG, "Send failed", e)
             false
         }
     }
     
-    /**
-     * Sınıflandırma sonucunu Arduino'ya gönder
-     * 
-     * @param lcdText LCD için formatlanmış metin
-     */
-    fun sendResult(lcdText: String): Boolean {
+    suspend fun sendResult(lcdText: String): Boolean {
         return send(lcdText)
     }
     
-    /**
-     * Bağlantıyı kapat
-     */
     fun disconnect() {
         try {
             serialPort?.close()
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e(TAG, "Close error", e)
         }
         
         serialPort = null
@@ -178,15 +222,15 @@ class ArduinoSerial(private val context: Context) {
         _deviceName.value = null
     }
     
-    /**
-     * Kaynakları serbest bırak
-     */
     fun release() {
         disconnect()
         try {
-            context.unregisterReceiver(usbPermissionReceiver)
+            if (receiverRegistered) {
+                context.unregisterReceiver(usbPermissionReceiver)
+                receiverRegistered = false
+            }
         } catch (e: IllegalArgumentException) {
-            // Receiver zaten kayıtlı değil
+            Log.w(TAG, "Receiver already unregistered")
         }
     }
 }

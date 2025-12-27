@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#1C1B1F</color>
+    <color name="error">#F2B8B5</color>
+    <color name="on_background">#E6E1E5</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="on_surface">#E6E1E5</color>
+    <color name="primary">#6750A4</color>
+    <color name="primary_variant">#7F67BE</color>
+    <color name="secondary">#625B71</color>
+    <color name="secondary_variant">#7A757F</color>
+    <color name="status_detected">#E91E63</color>
+    <color name="status_listening">#4CAF50</color>
+    <color name="status_processing">#FFC107</color>
+    <color name="success">#81C784</color>
+    <color name="surface">#2B2930</color>
+    <color name="warning">#FFB74D</color>
+    <string name="app_name">Crytes</string>
+    <string name="arduino_connected">Arduino bağlı</string>
+    <string name="arduino_disconnected">Arduino bağlı değil</string>
+    <string name="label_belly_pain">Karın Ağrısı 😣</string>
+    <string name="label_burping">Gaz/Geğirme 💨</string>
+    <string name="label_discomfort">Rahatsızlık 😫</string>
+    <string name="label_hungry">Açlık 🍼</string>
+    <string name="label_tired">Yorgunluk 😴</string>
+    <string name="permission_required">Mikrofon izni gerekli</string>
+    <string name="status_detected">Bebek ağlaması tespit edildi!</string>
+    <string name="status_listening">Dinleniyor...</string>
+    <string name="status_processing">Analiz ediliyor...</string>
+    <string name="status_waiting">Modeller yükleniyor...</string>
+    <style name="Theme.Crytes" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_variant</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_variant</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnBackground">@color/on_background</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+    </style>
+</resources>
