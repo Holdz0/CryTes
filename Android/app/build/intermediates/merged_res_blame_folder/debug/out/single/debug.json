@@ -26,5 +26,13 @@
     {
         "merged": "com.ciona.babycry.app-merged_res-36:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
         "source": "com.ciona.babycry.app-main-38:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.ciona.babycry.app-merged_res-36:/layout_dialog_follow_up.xml.flat",
+        "source": "com.ciona.babycry.app-main-38:/layout/dialog_follow_up.xml"
+    },
+    {
+        "merged": "com.ciona.babycry.app-merged_res-36:/drawable_dialog_background.xml.flat",
+        "source": "com.ciona.babycry.app-main-38:/drawable/dialog_background.xml"
     }
 ]

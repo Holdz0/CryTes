@@ -206,6 +206,79 @@ class ArduinoSerial(private val context: Context) {
     suspend fun sendResult(lcdText: String): Boolean {
         return send(lcdText)
     }
+
+    suspend fun sendInfo(line1: String, line2: String): Boolean {
+        val l1 = fixTurkish(line1).take(16)
+        val l2 = fixTurkish(line2).take(16)
+        return send("$l1%$l2")
+    }
+
+    private fun fixTurkish(text: String): String {
+        var result = text
+            .replace("ı", "i")
+            .replace("ğ", "g")
+            .replace("ü", "u")
+            .replace("ş", "s")
+            .replace("ö", "o")
+            .replace("ç", "c")
+            .replace("İ", "I")
+            .replace("Ğ", "G")
+            .replace("Ü", "U")
+            .replace("Ş", "S")
+            .replace("Ö", "O")
+            .replace("Ç", "C")
+            
+        // Emoji temizleme (Basitçe bilinenleri siliyoruz, regex daha iyi olabilir ama Python'daki mantığı koruyoruz)
+        val emojis = listOf("🍼", "😣", "💨", "😫", "😴", "👂", "🔉", "❌", "✅", "🎯", "👶")
+        for (emoji in emojis) {
+            result = result.replace(emoji, "")
+        }
+        return result.trim()
+    }
+    
+    suspend fun readSensorData(): String? = withContext(Dispatchers.IO) {
+        val port = serialPort ?: return@withContext null
+        
+        try {
+            // Buffer temizle
+            val buffer = ByteArray(1024)
+            while (port.read(buffer, 10) > 0) { }
+            
+            // İstek gönder
+            val cmd = "GET_SENSOR\n".toByteArray(Charsets.US_ASCII)
+            port.write(cmd, WRITE_TIMEOUT)
+            
+            // Cevap bekle (Timeout süresince)
+            val startTime = System.currentTimeMillis()
+            val responseBuilder = StringBuilder()
+            val readBuffer = ByteArray(64)
+            
+            while (System.currentTimeMillis() - startTime < 1000) {
+                val len = port.read(readBuffer, 100)
+                if (len > 0) {
+                    val part = String(readBuffer, 0, len, Charsets.US_ASCII)
+                    responseBuilder.append(part)
+                    
+                    if (responseBuilder.contains("\n")) {
+                        val lines = responseBuilder.toString().split("\n")
+                        for (line in lines) {
+                            val cleanLine = line.trim()
+                            if (cleanLine.startsWith("SENSOR:")) {
+                                val data = cleanLine.substringAfter("SENSOR:")
+                                val parts = data.split(",")
+                                if (parts.size == 2) {
+                                    return@withContext "${parts[0]}°C | %${parts[1]} Nem"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Sensor read error", e)
+        }
+        return@withContext null
+    }
     
     fun disconnect() {
         try {
