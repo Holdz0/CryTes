@@ -1,188 +1,580 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="24dp"
     tools:context=".MainActivity">
 
-    <!-- App Title -->
-    <TextView
-        android:id="@+id/titleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="CRYTES"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:textColor="@color/primary"
-        android:letterSpacing="0.2"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
-
-    <TextView
-        android:id="@+id/subtitleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Bebek Ağlama Dedektörü"
-        android:textSize="14sp"
-        android:textColor="@color/on_background"
-        android:alpha="0.7"
-        app:layout_constraintTop_toBottomOf="@id/titleText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="4dp"/>
-
-    <!-- Status Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/statusCard"
+    <!-- Main Content Container (using FrameLayout to allow floating elements) -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/surface"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:layout_constraintTop_toBottomOf="@id/subtitleText"
-        android:layout_marginTop="40dp">
+        android:layout_height="match_parent"
+        android:background="@color/background">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:gravity="center">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <!-- Status Indicator -->
-            <View
-                android:id="@+id/statusIndicator"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:background="@drawable/circle_indicator"/>
-
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/status_waiting"
-                android:textSize="18sp"
-                android:textColor="@color/on_surface"
-                android:layout_marginTop="16dp"/>
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Result Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/resultCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:cardBackgroundColor="@color/surface"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:layout_constraintTop_toBottomOf="@id/statusCard"
-        android:layout_marginTop="24dp"
-        tools:visibility="visible">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:gravity="center">
-
-            <TextView
-                android:id="@+id/resultEmoji"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="64sp"
-                tools:text="🍼"/>
-
-            <TextView
-                android:id="@+id/resultLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface"
-                android:layout_marginTop="8dp"
-                tools:text="Açlık"/>
-
-            <TextView
-                android:id="@+id/resultConfidence"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textColor="@color/success"
-                android:layout_marginTop="4dp"
-                tools:text="Güven: %87.5"/>
-
-            <!-- Confidence Bars -->
-            <LinearLayout
-                android:id="@+id/confidenceBarsContainer"
+            <!-- Sticky Top Header -->
+            <RelativeLayout
+                android:id="@+id/topHeader"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"/>
+                android:layout_height="52dp"
+                android:paddingHorizontal="4dp"
+                android:background="@color/background"
+                android:elevation="4dp">
+
+                <!-- Menu Button -->
+                <ImageButton
+                    android:id="@+id/menuButton"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_menu"
+                    android:padding="10dp"
+                    app:tint="@color/text_primary"
+                    android:contentDescription="Menu"/>
+
+                <!-- Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Baby Cry Analyzer"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:letterSpacing="-0.015"/>
+
+                <!-- Settings Button -->
+                <ImageButton
+                    android:id="@+id/settingsButton"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_preferences"
+                    android:padding="10dp"
+                    app:tint="@color/text_primary"
+                    android:contentDescription="Settings"/>
+
+            </RelativeLayout>
+
+            <!-- Scrollable Content -->
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fillViewport="true"
+                android:clipToPadding="false">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="72dp">
+
+                    <!-- Main Status Section -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingTop="24dp"
+                        android:paddingBottom="16dp">
+
+                        <!-- Pulse Visualizer Container -->
+                        <FrameLayout
+                            android:layout_width="240dp"
+                            android:layout_height="240dp"
+                            android:layout_marginVertical="16dp">
+
+                            <!-- Outer Ring -->
+                            <View
+                                android:id="@+id/pulseRingOuter"
+                                android:layout_width="240dp"
+                                android:layout_height="240dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/pulse_ring_outer"/>
+
+                            <!-- Middle Ring -->
+                            <View
+                                android:id="@+id/pulseRingMiddle"
+                                android:layout_width="192dp"
+                                android:layout_height="192dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/pulse_ring_middle"/>
+
+                            <!-- Inner Ring -->
+                            <View
+                                android:id="@+id/pulseRingInner"
+                                android:layout_width="144dp"
+                                android:layout_height="144dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/pulse_ring_inner"/>
+
+                            <!-- Core Mic Circle -->
+                            <FrameLayout
+                                android:layout_width="100dp"
+                                android:layout_height="100dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/mic_circle"
+                                android:elevation="8dp">
+
+                                <ImageView
+                                    android:id="@+id/micIcon"
+                                    android:layout_width="44dp"
+                                    android:layout_height="44dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_microphone"
+                                    app:tint="@android:color/white"
+                                    android:contentDescription="Microphone"/>
+
+                            </FrameLayout>
+
+                            <!-- Status Badge (LIVE FEED) -->
+                            <LinearLayout
+                                android:id="@+id/statusBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal|bottom"
+                                android:layout_marginBottom="-12dp"
+                                android:background="@drawable/status_badge_bg"
+                                android:paddingHorizontal="14dp"
+                                android:paddingVertical="5dp"
+                                android:gravity="center"
+                                android:orientation="horizontal"
+                                android:elevation="4dp">
+
+                                <View
+                                    android:id="@+id/statusDot"
+                                    android:layout_width="6dp"
+                                    android:layout_height="6dp"
+                                    android:background="@drawable/circle_small"/>
+
+                                <TextView
+                                    android:id="@+id/statusBadgeText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="LIVE FEED"
+                                    android:textSize="9sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#CCFFFFFF"
+                                    android:letterSpacing="0.08"
+                                    android:textAllCaps="true"
+                                    android:layout_marginStart="6dp"/>
+
+                            </LinearLayout>
+
+                        </FrameLayout>
+
+                        <!-- Headlines -->
+                        <TextView
+                            android:id="@+id/statusText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Listening..."
+                            android:textSize="28sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="12dp"/>
+
+                        <TextView
+                            android:id="@+id/statusSubtext"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Monitoring active in background.\nEnvironment is quiet."
+                            android:textSize="13sp"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center"
+                            android:lineSpacingExtra="3dp"
+                            android:layout_marginTop="6dp"
+                            android:paddingHorizontal="16dp"/>
+
+                    </LinearLayout>
+
+                    <!-- Primary Action Button -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="16dp">
+
+                        <LinearLayout
+                            android:id="@+id/actionButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="24dp"
+                            android:background="@drawable/action_button_bg"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground">
+
+                            <!-- Pause Icon Container -->
+                            <FrameLayout
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:background="@drawable/overlay_red_circle">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="⏸"
+                                    android:textSize="12sp"/>
+
+                            </FrameLayout>
+
+                            <TextView
+                                android:id="@+id/actionButtonText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pause Monitoring"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginStart="10dp"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Sensitivity Slider Section -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="24dp"
+                        android:paddingVertical="6dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="6dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Microphone Sensitivity"
+                                android:textSize="13sp"
+                                android:textColor="@color/text_secondary"/>
+
+                            <TextView
+                                android:id="@+id/sensitivityLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="High"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary"/>
+
+                        </LinearLayout>
+
+                        <!-- Slider Track -->
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="6dp">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/slider_track_bg"/>
+
+                            <View
+                                android:id="@+id/sensitivityProgress"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/slider_progress"/>
+
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                    <!-- Recent Activity Section -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingTop="24dp">
+
+                        <!-- Section Header -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingHorizontal="8dp"
+                            android:layout_marginBottom="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Recent Activity"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"/>
+
+                            <TextView
+                                android:id="@+id/viewAllButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="View All"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary"
+                                android:padding="6dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+                        </LinearLayout>
+
+                        <!-- Activity Cards Container -->
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/historyRecyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false"
+                            android:clipToPadding="false"
+                            android:paddingBottom="8dp"/>
+
+                        <!-- Empty State -->
+                        <LinearLayout
+                            android:id="@+id/emptyHistoryContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="24dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="😴"
+                                android:textSize="40sp"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="No activity yet"
+                                android:textSize="14sp"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginTop="6dp"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Debug Info -->
+                    <TextView
+                        android:id="@+id/debugText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="9sp"
+                        android:textColor="@color/text_disabled"
+                        android:fontFamily="monospace"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        tools:text="RMS: 0.015 | YAMNet: Speech"/>
+
+                </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+
+            <!-- Bottom Navigation (Compact) -->
+            <LinearLayout
+                android:id="@+id/bottomNavigation"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@color/nav_background"
+                android:paddingHorizontal="24dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:elevation="8dp">
+
+                <!-- Home -->
+                <LinearLayout
+                    android:id="@+id/navHome"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏠"
+                        android:textSize="20sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Home"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        android:layout_marginTop="2dp"/>
+
+                </LinearLayout>
+
+                <!-- History -->
+                <LinearLayout
+                    android:id="@+id/navHistory"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📊"
+                        android:textSize="20sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="History"
+                        android:textSize="9sp"
+                        android:textColor="@color/text_disabled"
+                        android:layout_marginTop="2dp"/>
+
+                </LinearLayout>
+
+                <!-- Profile -->
+                <LinearLayout
+                    android:id="@+id/navProfile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👤"
+                        android:textSize="20sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Profile"
+                        android:textSize="9sp"
+                        android:textColor="@color/text_disabled"
+                        android:layout_marginTop="2dp"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 
-    <LinearLayout
-        android:id="@+id/arduinoStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp">
-
-        <View
-            android:id="@+id/arduinoIndicator"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:background="@drawable/circle_small"/>
-
-        <TextView
-            android:id="@+id/arduinoText"
+        <!-- Arduino Status (floating inside FrameLayout) -->
+        <LinearLayout
+            android:id="@+id/arduinoStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/arduino_disconnected"
-            android:textSize="12sp"
-            android:textColor="@color/on_background"
-            android:alpha="0.6"
-            android:layout_marginStart="8dp"/>
-            
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@android:drawable/ic_popup_sync"
-            android:layout_marginStart="8dp"
-            android:alpha="0.5"
-            android:contentDescription="Yeniden Bağlan"
-            app:tint="@color/on_background"/>
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="72dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/status_badge_bg"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="10dp">
+
+            <View
+                android:id="@+id/arduinoIndicator"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/circle_small"/>
+
+            <TextView
+                android:id="@+id/arduinoText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/arduino_disconnected"
+                android:textSize="9sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginStart="5dp"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Navigation Drawer -->
+    <LinearLayout
+        android:id="@+id/navigationDrawer"
+        android:layout_width="280dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="@color/surface"
+        android:fitsSystemWindows="true">
+
+        <!-- Drawer Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:background="@color/background">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📋 Cry History"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All detection records"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="3dp"/>
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/border_light"/>
+
+        <!-- History List in Drawer -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/drawerHistoryRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:clipToPadding="false"/>
+
     </LinearLayout>
 
-    <!-- Debug Info -->
-    <TextView
-        android:id="@+id/debugText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="10sp"
-        android:textColor="@color/on_background"
-        android:alpha="0.4"
-        android:fontFamily="monospace"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"
-        tools:text="RMS: 0.015 | YAMNet: Speech"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

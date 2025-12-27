@@ -23,6 +23,22 @@ import java.io.IOException
  */
 class ArduinoSerial(private val context: Context) {
     
+    data class SensorReading(
+        val temp: Float,
+        val hum: Float,
+        val displayString: String
+    )
+    
+    /**
+     * Trafik lambası durumları
+     * GREEN = Sessiz, YELLOW = Ağlama harici ses, RED = Bebek ağlıyor
+     */
+    enum class TrafficLightState {
+        GREEN,   // Pin 3 - Yeşil
+        YELLOW,  // Pin 4 - Sarı
+        RED      // Pin 5 - Kırmızı
+    }
+    
     companion object {
         private const val TAG = "ArduinoSerial"
         private const val ACTION_USB_PERMISSION = "com.ciona.babycry.USB_PERMISSION"
@@ -213,6 +229,39 @@ class ArduinoSerial(private val context: Context) {
         return send("$l1%$l2")
     }
 
+    suspend fun sendScrollingInfo(line1: String, line2: String, durationMs: Long) = withContext(Dispatchers.IO) {
+        val l1 = fixTurkish(line1)
+        val l2 = fixTurkish(line2)
+        
+        // Eğer kısa ise direkt gönder ve bekle
+        if (l1.length <= 16 && l2.length <= 16) {
+            send("$l1%$l2")
+            kotlinx.coroutines.delay(durationMs)
+            return@withContext
+        }
+        
+        // Kayan yazı mantığı
+        val l1Padded = if (l1.length > 10) "   $l1   " else l1.padEnd(16) // Center yerine padEnd basitlik için
+        val l2Padded = if (l2.length > 10) "   $l2   " else l2.padEnd(16)
+        
+        val scrollSpeed = 300L
+        val startTime = System.currentTimeMillis()
+        
+        while (System.currentTimeMillis() - startTime < durationMs) {
+            val maxSteps = kotlin.math.max(l1Padded.length, l2Padded.length) - 15
+            
+            for (i in 0 until kotlin.math.max(1, maxSteps)) {
+                if (System.currentTimeMillis() - startTime >= durationMs) break
+                
+                val s1 = if (l1Padded.length > 16) l1Padded.substring(i, (i + 16).coerceAtMost(l1Padded.length)) else l1Padded.take(16)
+                val s2 = if (l2Padded.length > 16) l2Padded.substring(i, (i + 16).coerceAtMost(l2Padded.length)) else l2Padded.take(16)
+                
+                send("$s1%$s2")
+                kotlinx.coroutines.delay(scrollSpeed)
+            }
+        }
+    }
+
     private fun fixTurkish(text: String): String {
         var result = text
             .replace("ı", "i")
@@ -236,7 +285,7 @@ class ArduinoSerial(private val context: Context) {
         return result.trim()
     }
     
-    suspend fun readSensorData(): String? = withContext(Dispatchers.IO) {
+    suspend fun readSensorData(): SensorReading? = withContext(Dispatchers.IO) {
         val port = serialPort ?: return@withContext null
         
         try {
@@ -267,7 +316,13 @@ class ArduinoSerial(private val context: Context) {
                                 val data = cleanLine.substringAfter("SENSOR:")
                                 val parts = data.split(",")
                                 if (parts.size == 2) {
-                                    return@withContext "${parts[0]}°C | %${parts[1]} Nem"
+                                    val temp = parts[0].toFloatOrNull() ?: 0f
+                                    val hum = parts[1].toFloatOrNull() ?: 0f
+                                    return@withContext SensorReading(
+                                        temp, 
+                                        hum, 
+                                        "${parts[0]}°C | %${parts[1]} Nem"
+                                    )
                                 }
                             }
                         }
@@ -278,6 +333,24 @@ class ArduinoSerial(private val context: Context) {
             Log.e(TAG, "Sensor read error", e)
         }
         return@withContext null
+    }
+    
+    /**
+     * Trafik lambasını kontrol et
+     * Python: set_traffic_light(arduino, state)
+     * Arduino'ya LIGHT:GREEN, LIGHT:YELLOW veya LIGHT:RED gönderir
+     */
+    suspend fun setTrafficLight(state: TrafficLightState): Boolean {
+        return send("LIGHT:${state.name}")
+    }
+    
+    /**
+     * Ninni çalma komutu gönder
+     * Python: play_lullaby(arduino)
+     * Arduino buzzer ile "Dandini Dandini Dastana" çalar
+     */
+    suspend fun playLullaby(): Boolean {
+        return send("PLAY_LULLABY")
     }
     
     fun disconnect() {
