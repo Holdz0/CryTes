@@ -634,11 +634,15 @@
     <color name="accent_material_light">@color/material_deep_teal_500</color>
     <color name="androidx_core_ripple_material_light">#1f000000</color>
     <color name="androidx_core_secondary_text_default_material_light">#8a000000</color>
-    <color name="background">#1C1B1F</color>
+    <color name="background">#122017</color>
+    <color name="background_elevated">#1A2633</color>
     <color name="background_floating_material_dark">@color/material_grey_800</color>
     <color name="background_floating_material_light">@android:color/white</color>
     <color name="background_material_dark">@color/material_grey_850</color>
     <color name="background_material_light">@color/material_grey_50</color>
+    <color name="blue">#3B82F6</color>
+    <color name="border_5">#0DFFFFFF</color>
+    <color name="border_light">#1AFFFFFF</color>
     <color name="bright_foreground_disabled_material_dark">#80ffffff</color>
     <color name="bright_foreground_disabled_material_light">#80000000</color>
     <color name="bright_foreground_inverse_material_dark">@color/bright_foreground_material_light</color>
@@ -649,6 +653,8 @@
     <color name="button_material_light">#ffd6d7d7</color>
     <color name="call_notification_answer_color">#1d873b</color>
     <color name="call_notification_decline_color">#d93025</color>
+    <color name="card_background">#1A2633</color>
+    <color name="card_border">#0DFFFFFF</color>
     <color name="cardview_dark_background">#FF424242</color>
     <color name="cardview_light_background">#FFFFFFFF</color>
     <color name="cardview_shadow_end_color">#03000000</color>
@@ -692,7 +698,7 @@
     <color name="dim_foreground_disabled_material_light">#80323232</color>
     <color name="dim_foreground_material_dark">#ffbebebe</color>
     <color name="dim_foreground_material_light">#ff323232</color>
-    <color name="error">#F2B8B5</color>
+    <color name="error">#EF4444</color>
     <color name="error_color_material_dark">#ff7043</color>
     <color name="error_color_material_light">#ff5722</color>
     <color name="foreground_material_dark">@android:color/white</color>
@@ -936,42 +942,60 @@
     <color name="mtrl_textinput_filled_box_default_background_color">#0A000000</color>
     <color name="mtrl_textinput_focused_box_stroke_color">#00000000</color>
     <color name="mtrl_textinput_hovered_box_stroke_color">#DE000000</color>
+    <color name="nav_background">#E6101922</color>
     <color name="notification_action_color_filter">#ffffffff</color>
     <color name="notification_icon_bg_color">#ff9e9e9e</color>
-    <color name="on_background">#E6E1E5</color>
+    <color name="on_background">#FFFFFF</color>
     <color name="on_primary">#FFFFFF</color>
     <color name="on_secondary">#FFFFFF</color>
-    <color name="on_surface">#E6E1E5</color>
-    <color name="primary">#6750A4</color>
+    <color name="on_surface">#FFFFFF</color>
+    <color name="orange">#F97316</color>
+    <color name="overlay_blue">#333B82F6</color>
+    <color name="overlay_orange">#33F97316</color>
+    <color name="overlay_purple">#33A855F7</color>
+    <color name="overlay_red">#33EF4444</color>
+    <color name="primary">#1DB954</color>
+    <color name="primary_10">#1A1DB954</color>
+    <color name="primary_20">#331DB954</color>
+    <color name="primary_30">#4D1DB954</color>
+    <color name="primary_5">#0D1DB954</color>
+    <color name="primary_dark">#1AA34A</color>
     <color name="primary_dark_material_dark">@android:color/black</color>
     <color name="primary_dark_material_light">@color/material_grey_600</color>
+    <color name="primary_light">#1ED760</color>
     <color name="primary_material_dark">@color/material_grey_900</color>
     <color name="primary_material_light">@color/material_grey_100</color>
     <color name="primary_text_default_material_dark">#ffffffff</color>
     <color name="primary_text_default_material_light">#de000000</color>
     <color name="primary_text_disabled_material_dark">#4Dffffff</color>
     <color name="primary_text_disabled_material_light">#39000000</color>
-    <color name="primary_variant">#7F67BE</color>
+    <color name="primary_variant">#1AA34A</color>
+    <color name="purple">#A855F7</color>
     <color name="ripple_material_dark">#33ffffff</color>
     <color name="ripple_material_light">#1f000000</color>
-    <color name="secondary">#625B71</color>
+    <color name="secondary">#1DB954</color>
     <color name="secondary_text_default_material_dark">#b3ffffff</color>
     <color name="secondary_text_default_material_light">#8a000000</color>
     <color name="secondary_text_disabled_material_dark">#36ffffff</color>
     <color name="secondary_text_disabled_material_light">#24000000</color>
-    <color name="secondary_variant">#7A757F</color>
-    <color name="status_detected">#E91E63</color>
-    <color name="status_listening">#4CAF50</color>
-    <color name="status_processing">#FFC107</color>
-    <color name="success">#81C784</color>
-    <color name="surface">#2B2930</color>
+    <color name="secondary_variant">#1AA34A</color>
+    <color name="status_detected">#EF4444</color>
+    <color name="status_inactive">#64748B</color>
+    <color name="status_listening">#22C55E</color>
+    <color name="status_processing">#F59E0B</color>
+    <color name="success">#22C55E</color>
+    <color name="surface">#1A2633</color>
+    <color name="surface_dark">#101922</color>
     <color name="switch_thumb_disabled_material_dark">#ff616161</color>
     <color name="switch_thumb_disabled_material_light">#ffbdbdbd</color>
     <color name="switch_thumb_normal_material_dark">#ffbdbdbd</color>
     <color name="switch_thumb_normal_material_light">#fff1f1f1</color>
+    <color name="text_disabled">#64748B</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
     <color name="tooltip_background_dark">#e6616161</color>
     <color name="tooltip_background_light">#e6FFFFFF</color>
-    <color name="warning">#FFB74D</color>
+    <color name="warning">#F59E0B</color>
     <dimen name="abc_action_bar_content_inset_material">16dp</dimen>
     <dimen name="abc_action_bar_content_inset_with_nav">72dp</dimen>
     <dimen name="abc_action_bar_default_height_material">56dp</dimen>
@@ -6380,18 +6404,38 @@
         <item name="windowNoTitle">true</item>
     </style>
     <style name="Theme.Crytes" parent="Theme.Material3.Dark.NoActionBar">
+        
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_variant</item>
         <item name="colorOnPrimary">@color/on_primary</item>
+        
+        
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorSecondaryVariant">@color/secondary_variant</item>
         <item name="colorOnSecondary">@color/on_secondary</item>
+        
+        
         <item name="android:colorBackground">@color/background</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnBackground">@color/on_background</item>
         <item name="colorOnSurface">@color/on_surface</item>
+        
+        
         <item name="android:statusBarColor">@color/background</item>
         <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        
+        <item name="colorError">@color/error</item>
+        
+        
+        <item name="materialButtonStyle">@style/Widget.Crytes.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.Crytes.Card</item>
+    </style>
+    <style name="Theme.Crytes.Dialog" parent="ThemeOverlay.Material3.Dialog">
+        <item name="android:background">@drawable/dialog_background</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
     </style>
     <style name="Theme.Design" parent="Theme.AppCompat">
   </style>
@@ -7200,6 +7244,20 @@
     <style name="Widget.AppCompat.Toolbar.Button.Navigation" parent="Base.Widget.AppCompat.Toolbar.Button.Navigation"/>
     <style name="Widget.Compat.NotificationActionContainer" parent=""/>
     <style name="Widget.Compat.NotificationActionText" parent=""/>
+    <style name="Widget.Crytes.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/on_primary</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="Widget.Crytes.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/card_background</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">8dp</item>
+        <item name="strokeColor">@color/card_border</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
     <style name="Widget.Design.AppBarLayout" parent="android:Widget">
     <item name="android:background">?attr/colorPrimary</item>
     <item name="android:stateListAnimator" ns1:ignore="NewApi">

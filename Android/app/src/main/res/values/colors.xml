@@ -1,23 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#6750A4</color>
-    <color name="primary_variant">#7F67BE</color>
+    <!-- Primary Colors (Spotify Green) -->
+    <color name="primary">#1DB954</color>
+    <color name="primary_dark">#1AA34A</color>
+    <color name="primary_light">#1ED760</color>
+    <color name="primary_variant">#1AA34A</color>
+    <color name="primary_5">#0D1DB954</color>
+    <color name="primary_10">#1A1DB954</color>
+    <color name="primary_20">#331DB954</color>
+    <color name="primary_30">#4D1DB954</color>
     <color name="on_primary">#FFFFFF</color>
     
-    <color name="secondary">#625B71</color>
-    <color name="secondary_variant">#7A757F</color>
+    <!-- Secondary Colors -->
+    <color name="secondary">#1DB954</color>
+    <color name="secondary_variant">#1AA34A</color>
     <color name="on_secondary">#FFFFFF</color>
     
-    <color name="background">#1C1B1F</color>
-    <color name="surface">#2B2930</color>
-    <color name="on_background">#E6E1E5</color>
-    <color name="on_surface">#E6E1E5</color>
+    <!-- Background Colors -->
+    <color name="background">#122017</color>
+    <color name="background_elevated">#1A2633</color>
+    <color name="surface">#1A2633</color>
+    <color name="surface_dark">#101922</color>
     
-    <color name="error">#F2B8B5</color>
-    <color name="success">#81C784</color>
-    <color name="warning">#FFB74D</color>
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_disabled">#64748B</color>
+    <color name="on_background">#FFFFFF</color>
+    <color name="on_surface">#FFFFFF</color>
+    
+    <!-- Border Colors -->
+    <color name="border_light">#1AFFFFFF</color>
+    <color name="border_5">#0DFFFFFF</color>
+    
+    <!-- Semantic Colors -->
+    <color name="success">#22C55E</color>
+    <color name="error">#EF4444</color>
+    <color name="warning">#F59E0B</color>
+    <color name="orange">#F97316</color>
+    <color name="purple">#A855F7</color>
+    <color name="blue">#3B82F6</color>
+    
+    <!-- Card Background Colors -->
+    <color name="card_background">#1A2633</color>
+    <color name="card_border">#0DFFFFFF</color>
     
     <!-- Status Colors -->
-    <color name="status_listening">#4CAF50</color>
-    <color name="status_processing">#FFC107</color>
-    <color name="status_detected">#E91E63</color>
+    <color name="status_listening">#22C55E</color>
+    <color name="status_processing">#F59E0B</color>
+    <color name="status_detected">#EF4444</color>
+    <color name="status_inactive">#64748B</color>
+    
+    <!-- Overlay Colors -->
+    <color name="overlay_orange">#33F97316</color>
+    <color name="overlay_purple">#33A855F7</color>
+    <color name="overlay_blue">#333B82F6</color>
+    <color name="overlay_red">#33EF4444</color>
+    
+    <!-- Bottom Nav -->
+    <color name="nav_background">#E6101922</color>
 </resources>

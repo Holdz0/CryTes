@@ -31,7 +31,7 @@ class YamnetProcessor(context: Context) {
         // 21 = Crying, sobbing  
         // 22 = Whimper
         val BABY_CRY_INDICES = intArrayOf(20, 21, 22)
-        const val BABY_CRY_THRESHOLD = 0.05f  // %5 eşik
+        const val BABY_CRY_THRESHOLD = 0.10f  // %10 eşik
     }
     
     private var interpreter: Interpreter? = null
