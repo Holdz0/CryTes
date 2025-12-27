@@ -33,7 +33,7 @@ YAMNET_MODEL_HANDLE = 'https://tfhub.dev/google/yamnet/1'
 
 # YAMNet Parametreleri
 SAMPLE_RATE = 16000 # YAMNet 16k zorunlu
-DURATION = 5        # 5 saniyelik dinleme
+DURATION = 5        # 5 saniyelik dinleme .
 CONFIDENCE_THRESHOLD = 40.0
 RMS_THRESHOLD = 0.005 
 
@@ -44,9 +44,9 @@ ARDUINO_BAUD = 9600
 # Etiket Çevirileri
 LABEL_TR = {
     "hungry": "Açlık 🍼",
-    "belly_pain": "Karın Ağrısı 😣",
+    "belly_pain": "Karın Ağrısi 😣",
     "burping": "Gaz/Geğirme 💨",
-    "discomfort": "Rahatsızlık 😫",
+    "discomfort": "Rahatsızlıkk 😫",
     "tired": "Yorgunluk 😴"
 }
 
@@ -70,7 +70,7 @@ def load_components():
         with open(ENCODER_PATH, 'rb') as f:
             encoder = pickle.load(f)
             
-        print("✅ Tüm modeller hazır.")
+        print("✅ Tüm modeller hazir.")
         return yamnet, classifier, encoder
     except Exception as e:
         print(f"❌ Model yükleme hatası: {e}")
