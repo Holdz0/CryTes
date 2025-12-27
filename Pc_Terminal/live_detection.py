@@ -214,10 +214,27 @@ def play_lullaby(arduino):
     try:
         print("🎵 Ninni başlatılıyor (Dandini Dandini Dastana)...")
         arduino.write(b"PLAY_LULLABY\n")
-        # Ninni yaklaşık 25-30 saniye sürer, o kadar bekle
+        arduino.flush()  # Veriyi hemen gönder
+        time.sleep(0.5)  # Arduino'nun komutu işlemesi için bekle
         print("   💤 Ninni çalıyor... (Lütfen bekleyin)")
     except Exception as e:
         print(f"⚠️ Ninni başlatma hatası: {e}")
+
+def play_toy(arduino):
+    """
+    Arduino'ya servo motor oyuncak komutu gönder
+    Yorgunluk/rahatsızlık durumunda bebeği oyalamak için
+    """
+    if arduino is None:
+        return
+    try:
+        print("🧸 Oyuncak başlatılıyor (Servo Motor)...")
+        arduino.write(b"PLAY_TOY\n")
+        arduino.flush()  # Veriyi hemen gönder
+        time.sleep(0.5)  # Arduino'nun komutu işlemesi için bekle
+        print("   🎠 Oyuncak hareket ediyor...")
+    except Exception as e:
+        print(f"⚠️ Oyuncak başlatma hatası: {e}")
 
 def check_environment(temp, hum):
     """Ortam koşullarını kontrol et ve uyarı mesajı döndür"""
@@ -530,14 +547,23 @@ def main():
                                 line1, line2 = lcd_warnings[i]
                                 send_status_to_arduino(arduino, line1, line2, scroll=True, display_time=5)
                     
-                    # Yorgunluk veya Rahatsızlık ise ninni çal
+                    # Yorgunluk veya Rahatsızlık ise ninni ve oyuncak çalıştır
                     if predicted_label in ['tired', 'discomfort']:
-                        print("\n🌙 Bebek yorgun/rahatsız - Ninni başlatılıyor...")
-                        send_status_to_arduino(arduino, "Ninni Caliyor", "Dandini Dastana")
-                        play_lullaby(arduino)
-                        # Ninni süresince bekle (yaklaşık 30 saniye)
-                        time.sleep(30)
-                        print("🎵 Ninni tamamlandı.")
+                        print("\n🌙 Bebek yorgun/rahatsız - Ninni ve Oyuncak başlatılıyor...")
+                        send_status_to_arduino(arduino, "Ninni+Oyuncak", "Bebek sakinles")
+                        # Tek komutla hem ninni hem oyuncak çalıştır
+                        if arduino is not None:
+                            try:
+                                arduino.write(b"PLAY_SOOTHE\n")
+                                arduino.flush()
+                                print("🎵 Ninni çalıyor + 🧸 Oyuncak hareket ediyor...")
+                            except Exception as e:
+                                print(f"⚠️ Hata: {e}")
+                        else:
+                            print("⚠️ Arduino bağlı değil, ninni/oyuncak atlanıyor.")
+                        # Ninni ve oyuncak süresince bekle (yaklaşık 50 saniye)
+                        time.sleep(35)
+                        print("🎵 Ninni ve oyuncak tamamlandı.")
                     
                     # Ebeveyne takip soruları sor
                     ask_parent_followup(predicted_label, prediction, classes, encoder)
