@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/License-Hackathon%20Ciona-green.svg)
 
 **Yapay zeka destekli bebek ağlama sesi analizi ile ebeveynlere yardımcı olan akıllı sistem.**
-
+* Bu Proje CIONA Teknoloji Takımı tarafından yapılmış ve Advance-Up Hackathon Yarışması 2.lik ödülü kazanmıştır.*
 </div>
 
 ---
