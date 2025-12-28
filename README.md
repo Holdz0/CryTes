@@ -337,6 +337,7 @@ Bu proje **Hackathon Ciona** için geliştirilmiştir.
 ## 📄 Lisans
 
 Bu proje Hackathon Ciona kapsamında geliştirilmiştir.
+Bu uygulama Taha Efe Tuncer - Enes Altunbaş - Recep Saki Karaman tarafından geliştirilmiştir.
 
 ---
 
